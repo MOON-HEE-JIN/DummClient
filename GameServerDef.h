@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#define ProcThreadCnt 3
+
 typedef struct st_Log
 {
 	std::string filePath;

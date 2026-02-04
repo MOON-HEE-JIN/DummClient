@@ -14,6 +14,8 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 		return -1;
 	}
 	
+	pTarget->IncrementDisConnectRandomCount();
+
 	st_CTS_LoopBack res;
 	res.data = pTarget->IncrementLoopbackData();
 	
