@@ -8,14 +8,19 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 	
 	__int64 b = data.data;
 	
-	b++;
-
-	CPacket pRes;
+	if (b != pTarget->GetLoopbackData())
+	{
+		printf("LoopBack Data Error : %lld != %lld\n", b, pTarget->GetLoopbackData());
+		return -1;
+	}
+	
 	st_CTS_LoopBack res;
-	res.data = b;
+	res.data = pTarget->IncrementLoopbackData();
+	
+	CPacket pRes;
 	pRes << res;
-	Sleep(1000 * 5);
-	pTarget->SendPacket(GAME::LOOPBACK, &pRes);
+
+	pTarget->SendEnqueuePacket(GAME::LOOPBACK, &pRes);
 	return 0;
 }
 

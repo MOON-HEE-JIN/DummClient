@@ -33,6 +33,7 @@ private:
 public:
 	int IncrementIOCnt() { return InterlockedIncrement(&IOCnt); }
 	int DecrementIOCnt() { return InterlockedDecrement(&IOCnt); }
+	int GetIOCnt() { DWORD ret; InterlockedExchange(&ret, IOCnt); return ret; }
 	void ChangeSendFlag(bool b) { InterlockedExchange((DWORD*)& bSendFlag, b); }
 
 	void LockSendQ() { EnterCriticalSection(&m_csSendQ); }
@@ -50,6 +51,7 @@ public:
 	void Clear();
 	void CloseSocket();
 	void SendPacket(int _type, CPacket* _pPacket);
+	void SendEnqueuePacket(int _type, CPacket* _pPacket);
 	void SendPost();
 	void RecvPost();
 };
