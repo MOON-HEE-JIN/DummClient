@@ -1,0 +1,206 @@
+#include "CSession.h"
+#include <WS2tcpip.h>
+#include "../Stub/StructDef.h"
+
+CSession::CSession()
+{
+	CICP = 0;
+	sock = 0;
+
+	RecvQ = new RingQueue;
+	SendQ = new RingQueue;
+
+	RecvOverlap = { 0 };
+	SendOverlap = { 0 };
+
+	bSendFlag = false;
+	UseFlag = true;
+
+	bConnect = false;
+
+	IOCnt = 1;
+	InitializeCriticalSection(&cs);
+	InitializeCriticalSection(&m_csSendQ);
+}
+
+CSession::~CSession()
+{
+	CloseSocket();
+
+	delete RecvQ;
+	delete SendQ;
+	DeleteCriticalSection(&cs);
+	DeleteCriticalSection(&m_csSendQ);
+}
+
+int CSession::Connect(const char IP[16], unsigned short Port, HANDLE cicp)
+{
+	WSADATA wsa;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		return WSAGetLastError();
+
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET)
+		return WSAGetLastError();
+
+	SOCKADDR_IN addr_in;
+	ZeroMemory(&addr_in, sizeof(SOCKADDR_IN));
+	addr_in.sin_family = AF_INET;
+
+	inet_pton(AF_INET, IP, &addr_in.sin_addr);
+
+	addr_in.sin_port = htons(Port);
+
+	if (connect(sock, (SOCKADDR*)&addr_in, sizeof(addr_in)) == SOCKET_ERROR)
+		return WSAGetLastError();
+	
+	u_long on = 1;
+	if (ioctlsocket(sock, FIONBIO, &on) == SOCKET_ERROR)
+		return WSAGetLastError();
+
+	bConnect = true;
+	
+	CICP = CreateIoCompletionPort((HANDLE)sock, cicp, (ULONG_PTR)this, 0);
+
+	RecvPost();
+
+	return 0;
+}
+
+void CSession::Clear()
+{
+	bSendFlag = false;
+	UseFlag = false;
+	RecvOverlap = { 0 };
+	SendOverlap = { 0 };
+	RecvQ->Clear();
+	SendQ->Clear();
+
+	CloseSocket();
+}
+
+void CSession::CloseSocket()
+{
+	if (bConnect)
+	{
+		bConnect = false;
+		closesocket(sock);
+	}
+}
+
+void CSession::SendPacket(int _type, CPacket* _packet)
+{
+	EnterCriticalSection(&m_csSendQ);
+	st_Header header;
+	header.type = _type;
+	header.size = _packet->GetDataSize();
+	int ret = SendQ->Enqueue((char*)&header, sizeof(st_Header));
+
+	ret = SendQ->Enqueue(_packet->GetReadBuffPtr(), _packet->GetDataSize());
+	LeaveCriticalSection(&m_csSendQ);
+
+	SendPost();
+	printf("SendPacket\n");
+}
+
+void CSession::SendPost()
+{
+	if (InterlockedExchange(&bSendFlag, TRUE) == TRUE)
+		return;
+
+	if (SendQ->GetUseSize() <= 0)
+	{
+		InterlockedExchange(&bSendFlag, FALSE);
+		return;
+	}
+	InterlockedIncrement(&IOCnt);
+
+	int ret;
+
+	EnterCriticalSection(&m_csSendQ);
+	if (SendQ->GetDirectDequeueSize() < SendQ->GetUseSize())
+	{
+		WSABUF wsabuf[2];
+		wsabuf[0].buf = SendQ->GetReadPointer();
+		wsabuf[0].len = SendQ->GetDirectDequeueSize();
+		wsabuf[1].buf = SendQ->GetFirstPointer();
+		wsabuf[1].len = SendQ->GetUseSize() - SendQ->GetDirectDequeueSize();
+		ret = WSASend(sock, wsabuf, 2, 0, 0, &SendOverlap, NULL);
+	}
+	else
+	{
+		WSABUF wsabuf;
+		wsabuf.buf = SendQ->GetReadPointer();
+		wsabuf.len = SendQ->GetDirectDequeueSize();
+		ret = WSASend(sock, &wsabuf, 1, 0, 0, &SendOverlap, NULL);
+	}
+	LeaveCriticalSection(&m_csSendQ);
+
+	if (ret == SOCKET_ERROR)
+	{
+		ret = WSAGetLastError();
+		if (ret != WSA_IO_PENDING)
+		{
+			/*
+			if (ret != 10038 && ret != 10054 && ret != WSA_IO_PENDING)
+				LOG_INFO("SEND_WSA_ERROR_%d\n", ret);
+			*/
+
+
+			InterlockedExchange((DWORD*)&bSendFlag, FALSE);
+			if (InterlockedDecrement((DWORD*)&IOCnt) == 0)
+			{
+				closesocket(sock);
+			}
+		}
+		else
+		{
+			//printf("%d Send IO_PENDING\n", (int)sock);
+		}
+	}
+}
+
+void CSession::RecvPost()
+{
+	DWORD flags = 0;
+
+	int ret = 0;
+
+	if (RecvQ->GetDirectEnqueueSize() < RecvQ->GetFreeSize())
+	{
+		WSABUF wsabuf[2];
+		wsabuf[0].buf = RecvQ->GetWritePointer();
+		wsabuf[0].len = RecvQ->GetDirectEnqueueSize();
+		wsabuf[1].buf = RecvQ->GetFirstPointer();
+		wsabuf[1].len = RecvQ->GetFreeSize() - wsabuf[0].len;
+
+		ret = WSARecv(sock, wsabuf, 2, NULL, &flags, &RecvOverlap, NULL);
+	}
+
+	else
+	{
+		WSABUF wsabuf;
+		wsabuf.buf = RecvQ->GetWritePointer();
+		wsabuf.len = RecvQ->GetDirectEnqueueSize();
+
+		ret = WSARecv(sock, &wsabuf, 1, NULL, &flags, &RecvOverlap, NULL);
+	}
+
+	if (ret == SOCKET_ERROR)
+	{
+		ret = WSAGetLastError();
+		if (ret != WSA_IO_PENDING)
+		{
+			// 10054 : 연결이 강제로 끊김, 10053 : 비정상 종료
+			if (ret != 10054 && ret != 10053)
+			{
+				//printf("-- Recv WSARecv Error %d ---\n", ret);
+			}
+			if (InterlockedDecrement(&IOCnt) == 0)
+			{
+				CloseSocket();
+			}
+		}
+	}
+}

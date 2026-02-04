@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build outputs
+bin/
+obj/
+build/
+out/
+
+# IDEs
+.vs/
+.idea/
+.vscode/
+*.user
+
+# Visual Studio build output
+x64/
+Debug/
+Release/
+CPP_NetClient/x64/

@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CPP_NetClient.vcxproj" Id="5546d113-2510-4e4d-a4de-2d69b402f2c2" />
+</Solution>
