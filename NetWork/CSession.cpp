@@ -18,7 +18,7 @@ CSession::CSession()
 
 	bConnect = false;
 
-	IOCnt = 1;
+	IOCnt = 0;
 	InitializeCriticalSection(&cs);
 	InitializeCriticalSection(&m_csSendQ);
 }
@@ -104,6 +104,18 @@ void CSession::SendPacket(int _type, CPacket* _packet)
 	printf("SendPacket\n");
 }
 
+void CSession::SendEnqueuePacket(int _type, CPacket* _pPacket)
+{
+	EnterCriticalSection(&m_csSendQ);
+	st_Header header;
+	header.type = _type;
+	header.size = _pPacket->GetDataSize();
+	int ret = SendQ->Enqueue((char*)&header, sizeof(st_Header));
+
+	ret = SendQ->Enqueue(_pPacket->GetReadBuffPtr(), _pPacket->GetDataSize());
+	LeaveCriticalSection(&m_csSendQ);
+}
+
 void CSession::SendPost()
 {
 	if (InterlockedExchange(&bSendFlag, TRUE) == TRUE)
@@ -163,10 +175,12 @@ void CSession::SendPost()
 
 void CSession::RecvPost()
 {
+	IncrementIOCnt();
 	DWORD flags = 0;
 
 	int ret = 0;
 
+	ZeroMemory(&RecvOverlap, sizeof(OVERLAPPED));
 	if (RecvQ->GetDirectEnqueueSize() < RecvQ->GetFreeSize())
 	{
 		WSABUF wsabuf[2];

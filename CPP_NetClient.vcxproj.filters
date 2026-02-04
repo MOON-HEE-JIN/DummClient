@@ -22,6 +22,15 @@
     <Filter Include="소스 파일\CUtill">
       <UniqueIdentifier>{073eb6a9-d125-4954-964e-96c0175ae7af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Log">
+      <UniqueIdentifier>{6eefffaf-b39b-461e-8b7d-dcdf9e72abb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\MemoryManager">
+      <UniqueIdentifier>{0259d32d-6cfb-41aa-bbb9-9aa71c8b37bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\CDummy">
+      <UniqueIdentifier>{cd45fc6c-b3c1-4490-a986-b1c79af1b22d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NetWork\CNetWork.h">
@@ -57,6 +66,27 @@
     <ClInclude Include="CPacketProc.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="CUtill\CUtill.h">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClInclude>
+    <ClInclude Include="Log\CLog.h">
+      <Filter>소스 파일\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager\CHazardMemoryPool_FromGPT.h">
+      <Filter>소스 파일\MemoryManager</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager\CLockFreeQueue_FromGPT.h">
+      <Filter>소스 파일\MemoryManager</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager\MemoryManager.h">
+      <Filter>소스 파일\MemoryManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GameServerDef.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CDummy\CDummy.h">
+      <Filter>소스 파일\CDummy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -85,6 +115,18 @@
     </ClCompile>
     <ClCompile Include="CPacketProc.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CUtill\CUtill.cpp">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClCompile>
+    <ClCompile Include="Log\CLog.cpp">
+      <Filter>소스 파일\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager\MemoryManager.cpp">
+      <Filter>소스 파일\MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="CDummy\CDummy.cpp">
+      <Filter>소스 파일\CDummy</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

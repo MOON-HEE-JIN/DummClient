@@ -26,92 +26,114 @@ void WaitThread()
 
 unsigned __stdcall WorkerThread(void* arg)
 {
-	int ret;
-	CSession* pSession;
+	int retval = 0;
+	CSession* pSession = nullptr;
 	DWORD transfrerred;
-	OVERLAPPED* overlapped = new OVERLAPPED;
 
+	ULONG_PTR key;
 	while (g_bRun)
 	{
 		pSession = nullptr;
 		transfrerred = 0;
-		ZeroMemory(overlapped, sizeof(OVERLAPPED));
-
-		ret = GetQueuedCompletionStatus(CICP, &transfrerred, (PULONG_PTR)&pSession, &overlapped, INFINITE);
-
-		if (pSession == nullptr && transfrerred == NULL && overlapped == nullptr)
-			break;
+		OVERLAPPED* overlapped = nullptr;
+		retval = GetQueuedCompletionStatus(CICP, &transfrerred, &key, &overlapped, INFINITE);
+		
+		pSession = (CSession*)key;
 
 		if (pSession == nullptr)
-			break;
+			continue;
 
-		if (ret == 0 || transfrerred == 0)
-		{
-			int err = WSAGetLastError();
-			if (err != 64 && err != 997 && err != 0 && err != 10038 && err != 1236)
-			{
-				/*
-				* ERROR_NETNAME_DELETED(64) : TCP 연결이 비정상적 종료
-				* WSA_IO_PENDING(997) : 중첩 I/O 작업 나중에 완료
-				* ERROR_NETWORK_UNREACHABLE(1236) : 네트워크 연결이 시스템에 의해 중단
-				*	linger 옵션이 설정시 RST 를 즉시 전송 RST 에의 해 연결이 종료 되어 대기중인 recv 에서 오류
-				* WSAENOTSOCKET(10038) : nonsocket 에 대한 소켓 작업
-				LOG_INFO("WorkerThread GQCS Error %d\n", err);
-				*/
-				goto Decrement;
-			}
-		}
+		if (overlapped == nullptr)
+			continue;
+
 		if (overlapped == pSession->GetRecvOverlapPointer())
 		{
-
-			pSession->IncrementIOCnt();
-
-			pSession->GetRecvBuffer()->MoveWritePointer(transfrerred);
-
-			int size;
-
-			st_Header  header;
-
-			while (1)
+			if (retval == 0 || transfrerred == 0)
 			{
-				size = pSession->GetRecvBuffer()->GetUseSize();
-
-				//고정된 크기의 Header 크기 확인
-				if (size < sizeof(st_Header))
-					break;
-
-				pSession->GetRecvBuffer()->Peek((char*)&header, sizeof(st_Header));
-				
-				if (size - sizeof(st_Header) < header.size)
-					break;
-
-				pSession->GetRecvBuffer()->MoveReadPointer(sizeof(st_Header));
-				CPacket cPacket;
-
-				pSession->GetRecvBuffer()->Dequeue(cPacket.GetWriteBuffPtr(), header.size);
-				cPacket.MoveWritePos(header.size);
-
-				pSession->OnRecv(header.type, cPacket);
+				int err = WSAGetLastError();
+				if (err != 64 && err != 997 && err != 0 && err != 10038 && err != 1236)
+				{
+					/*
+					* ERROR_NETNAME_DELETED(64) : TCP 연결이 비정상적 종료
+					* WSA_IO_PENDING(997) : 중첩 I/O 작업 나중에 완료
+					* ERROR_NETWORK_UNREACHABLE(1236) : 네트워크 연결이 시스템에 의해 중단
+					*	linger 옵션이 설정시 RST 를 즉시 전송 RST 에의 해 연결이 종료 되어 대기중인 recv 에서 오류
+					* WSAENOTSOCKET(10038) : nonsocket 에 대한 소켓 작업
+					printf("WorkerThread GQCS Error %d\n", err);
+					*/
+				}
+				pSession->CloseSocket();
 			}
-			pSession->RecvPost();
-		}
+			else
+			{
+				pSession->GetRecvBuffer()->MoveWritePointer(transfrerred);
 
+				st_Header header;
+
+				int size;
+
+				while (1)
+				{
+					size = pSession->GetRecvBuffer()->GetUseSize();
+
+					//고정된 크기의 Header 크기 확인
+					if (size < sizeof(st_Header))
+						break;
+
+					pSession->GetRecvBuffer()->Peek((char*)&header, sizeof(st_Header));
+
+					if (size - sizeof(st_Header) < header.size)
+						break;
+
+					pSession->GetRecvBuffer()->MoveReadPointer(sizeof(st_Header));
+					CPacket cPacket;
+
+					pSession->GetRecvBuffer()->Dequeue(cPacket.GetWriteBuffPtr(), header.size);
+					cPacket.MoveWritePos(header.size);
+
+					pSession->OnRecv(header.type, cPacket);
+				}
+				pSession->RecvPost();
+			}
+			pSession->DecrementIOCnt();
+		}
 		else if (overlapped == pSession->GetSendOverlapPointer())
 		{
 			pSession->LockSendQ();
-			pSession->GetSendBuffer()->MoveReadPointer(transfrerred);
+			{
+				pSession->GetSendBuffer()->MoveReadPointer(transfrerred);
+			}
 			pSession->UnLockSendQ();
 
 			pSession->ChangeSendFlag(FALSE);
-			
-			pSession->SendPost();
+
+			if (retval == 0 || transfrerred == 0)
+			{
+				int err = WSAGetLastError();
+				if (err != 64 && err != 997 && err != 0 && err != 10038 && err != 1236)
+				{
+					/*
+					* ERROR_NETNAME_DELETED(64) : TCP 연결이 비정상적 종료
+					* WSA_IO_PENDING(997) : 중첩 I/O 작업 나중에 완료
+					* ERROR_NETWORK_UNREACHABLE(1236) : 네트워크 연결이 시스템에 의해 중단
+					*	linger 옵션이 설정시 RST 를 즉시 전송 RST 에의 해 연결이 종료 되어 대기중인 recv 에서 오류
+					* WSAENOTSOCKET(10038) : nonsocket 에 대한 소켓 작업
+					printf("WorkerThread GQCS Error %d\n", err);
+					*/
+				}
+				pSession->CloseSocket();
+			}
+			else
+			{
+				pSession->SendPost();
+			}
+			pSession->DecrementIOCnt();
 		}
-	Decrement:
-		if (pSession->DecrementIOCnt() == 0)
+
+		if (pSession->GetIOCnt() == 0)
 		{
 			delete pSession;
 		}
-
 	}
 	return 0;
 }
