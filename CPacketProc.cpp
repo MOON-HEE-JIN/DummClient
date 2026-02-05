@@ -1,5 +1,5 @@
 #include "CPacketProc.h"
-
+#include "Stub/EnumDef.h"
 
 int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 {
@@ -32,6 +32,20 @@ int CPacketProc::DO_ERROR_PACKET(CClient* pTarget, CPacket& pReqPacket)
 }
 int CPacketProc::DO_ERROR_RESULT(CClient* pTarget, int ret, int type)
 {
+	return 0;
+}
+
+int CPacketProc::DO_GAME_CHANGEPID(CClient* pTarget, CPacket& pReqPacket)
+{
+	st_STC_ChangePid res;
+	pReqPacket >> res;
+
+	res.ret;
+	if (res.ret != ERROR_CODE::NOT_ERROR && res.ret != ERROR_CODE::EQUAL_PID)
+	{
+		printf("Error Change Pid ret : %d\n", res.ret);
+	}
+
 	return 0;
 }
 

@@ -1,9 +1,10 @@
-#include "CLIENT_STUB.h"
 #include "PacketEnumDef.h"
+#include "CLIENT_STUB.h"
 template<typename Object, typename Packet>
 void Stub<Object,Packet>::InitRegisterFuncPointer()
 {
 	m_mapGAMEProc[GAME::LOOPBACK] = std::bind(&Stub::DO_GAME_LOOPBACK, this, std::placeholders::_1, std::placeholders::_2);
+	m_mapGAMEProc[GAME::CHANGEPID] = std::bind(&Stub::DO_GAME_CHANGEPID, this, std::placeholders::_1, std::placeholders::_2);
 }
 template<typename Object, typename Packet>
 void Stub<Object,Packet>::DO_GAME_Proc(int type, Object* pTarget, Packet& cPacket)

@@ -59,6 +59,7 @@ void CDummy::SendLoopbackPackets()
 {
 	for (CClient* pClient : m_DummyClients)
 	{
+		pClient->SendChangePidPacket();
 		pClient->SendLoopbackPacket();
 	}
 }

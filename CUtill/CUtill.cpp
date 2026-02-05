@@ -2,6 +2,8 @@
 
 #include <random>
 
+#define __FIX_SEED__
+
 int CUtil::Random(int Min, int Max)
 {
 	if (Min >= Max)

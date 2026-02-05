@@ -20,4 +20,7 @@ private:
 	
 	int DO_ERROR_PACKET(CClient* pTarget, CPacket& pReqPacket);
 	int DO_ERROR_RESULT(CClient* pTarget, int ret, int type);
+
+	// Stub을(를) 통해 상속됨
+	int DO_GAME_CHANGEPID(CClient* pTarget, CPacket& pReqPacket) override;
 };
