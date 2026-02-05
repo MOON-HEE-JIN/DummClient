@@ -13,11 +13,12 @@ CClient::CClient(int ClientID)
 	m_nLastSendReqTime = GetTickCount();
 	m_nLoopbackSendCount = 0;
 
-	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5√ 
+	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5√É√ä
 
 	m_nDisConnectRandomCount = CUtil::Random(10, 40); // 10~40
 
 	m_nServerProcID = CUtil::Random(0, 2);
+	m_nDisConnectRandomCount = CUtil::Random(5, 10); // 2000~5000
 }
 
 void CClient::OnRecv(int type, CPacket& cPacket)

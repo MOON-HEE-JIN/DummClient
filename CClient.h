@@ -6,7 +6,7 @@ public:
 	CClient(int ClientID);
 	~CClient() {}
 
-	// CSessionÀ»(¸¦) ÅëÇØ »ó¼ÓµÊ
+	// CSessionÃ€Â»(Â¸Â¦) Ã…Ã«Ã‡Ã˜ Â»Ã³Â¼Ã“ÂµÃŠ
 	void OnRecv(int type, CPacket& cPacket) override;
 
 	void SendChangePidPacket();
