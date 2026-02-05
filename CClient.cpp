@@ -15,13 +15,26 @@ CClient::CClient(int ClientID)
 
 	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5√ 
 
-	m_nDisConnectRandomCount = CUtil::Random(5, 10); // 2000~5000
+	m_nDisConnectRandomCount = CUtil::Random(10, 40); // 10~40
+
+	m_nServerProcID = CUtil::Random(0, 2);
 }
 
 void CClient::OnRecv(int type, CPacket& cPacket)
 {
 	//printf("CClient::OnRecv Type : %d \n", type);
 	g_cPacketProc.DO_GAME_Proc(type, this, cPacket);
+}
+
+void CClient::SendChangePidPacket()
+{
+	st_CTS_ChangePid data;
+	data.pid = m_nServerProcID;
+	
+	CPacket Req;
+	Req << data;
+
+	SendEnqueuePacket(GAME::CHANGEPID, &Req);
 }
 
 void CClient::SendLoopbackPacket()
