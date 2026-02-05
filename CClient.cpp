@@ -13,7 +13,7 @@ CClient::CClient(int ClientID)
 	m_nLastSendReqTime = GetTickCount();
 	m_nLoopbackSendCount = 0;
 
-	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5ÃÊ
+	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5 초
 
 	m_nDisConnectRandomCount = CUtil::Random(10, 40); // 10~40
 
