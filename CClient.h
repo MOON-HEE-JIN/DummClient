@@ -6,9 +6,10 @@ public:
 	CClient(int ClientID);
 	~CClient() {}
 
-	// CSessionÀ»(¸¦) ÅëÇØ »ó¼ÓµÊ
+	// CSessionÃ€Â»(Â¸Â¦) Ã…Ã«Ã‡Ã˜ Â»Ã³Â¼Ã“ÂµÃŠ
 	void OnRecv(int type, CPacket& cPacket) override;
 
+	void SendChangePidPacket();
 	void SendLoopbackPacket();
 
 
@@ -31,9 +32,11 @@ private:
 	int m_nDisConnectRandomCount;
 	int m_nLoopbackSendCount;
 
+	int m_nServerProcID;
 public:
 	int GetSendReqDelayTime() const { return m_nSendReqDelayTime; }
 	__int64 GetLoopbackData() const { return m_LoopbackData; }
+	int GetServerProcID() { return m_nServerProcID; }
 
 	__int64 IncrementLoopbackData() { return ++m_LoopbackData; }
 	bool IncrementDisConnectRandomCount();

@@ -12,10 +12,11 @@ void main()
 	StartThread();
 
 	g_DummyManager.StartDummyClients(1000);
-	// ¼­¹ö ÂÊ ¿¬°á ·Î±× ³¡³ª¸é º¸³»±â
-	// ·Î±× ½±°Ô º¸±â À§ÇØ¼­ ¾à°£ÀÇ µô·¹ÀÌ
-	// PR Å×½ºÆ®¸¦ À§ÇÑ ·Î±× Ãß°¡
-	Sleep(1000);
+	// ì„œë²„ ìª½ ì—°ê²° ë¡œê·¸ ëë‚˜ë©´ ë³´ë‚´ê¸°
+	// ë¡œê·¸ ì‰½ê²Œ ë³´ê¸° ìœ„í•´ì„œ ì•½ê°„ì˜ ë”œë ˆì´
+	// PR í…ŒìŠ¤íŠ¸ë¥¼ ìœ„í•œ ë¡œê·¸ ì¶”ê°€
+	Sleep(5000);
+	printf("=== Send Start ===\n");
 	g_DummyManager.SendLoopbackPackets();
 	while (true)
 	{
