@@ -31,15 +31,27 @@ private:
 
 	int m_nDisConnectRandomCount;
 	int m_nLoopbackSendCount;
+	int m_nLastLoopbackSendTick;
+	int m_nLastLoopbackLatencyMs;
+	int m_nAvgLoopbackLatencyMs;
+	int m_nForceDisconnectTick;
+
+	bool m_bWaitChangePidAck;
 
 	int m_nServerProcID;
 public:
 	int GetSendReqDelayTime() const { return m_nSendReqDelayTime; }
 	__int64 GetLoopbackData() const { return m_LoopbackData; }
 	int GetServerProcID() { return m_nServerProcID; }
+	int GetClientID() const { return m_nClientID; }
 
 	__int64 IncrementLoopbackData() { return ++m_LoopbackData; }
 	bool IncrementDisConnectRandomCount();
+	void OnChangePidAck();
+	void OnLoopbackAck();
+	bool IsWaitingChangePidAck() const { return m_bWaitChangePidAck; }
+	int GetLastLoopbackLatencyMs() const { return m_nLastLoopbackLatencyMs; }
+	int GetAvgLoopbackLatencyMs() const { return m_nAvgLoopbackLatencyMs; }
 
 	bool IsSend();
 };
