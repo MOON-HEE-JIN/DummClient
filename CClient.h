@@ -36,6 +36,7 @@ private:
 	int m_nDisConnectRandomCount;
 	int m_nLoopbackSendCount;
 
+	int m_nServerProcID;
 public:
 	int GetSendReqDelayTime() const { return m_nSendReqDelayTime; }
 	__int64 GetLoopbackData() const { return m_LoopbackData; }
