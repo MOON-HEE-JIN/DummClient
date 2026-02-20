@@ -1,4 +1,4 @@
-#include "NetWork/CNetWork.h"
+﻿#include "NetWork/CNetWork.h"
 #include "NetWork/CSession.h"
 
 #include "Stub/PacketEnumDef.h"
@@ -11,11 +11,7 @@ void main()
 	
 	StartThread();
 
-	g_DummyManager.StartDummyClients(1000);
-	// 서버 쪽 연결 로그 끝나면 보내기
-	// 로그 쉽게 보기 위해서 약간의 딜레이
-	// PR 테스트를 위한 로그 추가
-	Sleep(5000);
+	g_DummyManager.StartDummyClients();
 	printf("=== Send Start ===\n");
 	g_DummyManager.SendLoopbackPackets();
 	while (true)

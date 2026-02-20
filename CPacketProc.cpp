@@ -1,5 +1,7 @@
-#include "CPacketProc.h"
+﻿#include "CPacketProc.h"
 #include "Stub/EnumDef.h"
+#include "Log/CLog.h"
+#include "CDummy/DummyDef.h"
 
 int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 {
@@ -10,11 +12,13 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 	
 	if (b != pTarget->GetLoopbackData())
 	{
-		printf("LoopBack Data Error : %lld != %lld\n", b, pTarget->GetLoopbackData());
+		g_LogDummy.ELog("LoopBack Data Error : %lld != %lld", b, pTarget->GetLoopbackData());
 		return -1;
 	}
 	
+#if __DUMMY_DISCONNECT__
 	pTarget->IncrementDisConnectRandomCount();
+#endif // __DUMMY_DISCONNECT__
 
 	st_CTS_LoopBack res;
 	res.data = pTarget->IncrementLoopbackData();
@@ -43,8 +47,10 @@ int CPacketProc::DO_GAME_CHANGEPID(CClient* pTarget, CPacket& pReqPacket)
 	res.ret;
 	if (res.ret != ERROR_CODE::NOT_ERROR && res.ret != ERROR_CODE::EQUAL_PID)
 	{
-		printf("Error Change Pid ret : %d\n", res.ret);
+		g_LogDummy.ELog("Error Change Pid ret : %d", res.ret);
 	}
+
+	pTarget->CompletedWaitServerResponse();
 
 	return 0;
 }
