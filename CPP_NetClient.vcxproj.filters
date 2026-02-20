@@ -87,6 +87,9 @@
     <ClInclude Include="CDummy\CDummy.h">
       <Filter>소스 파일\CDummy</Filter>
     </ClInclude>
+    <ClInclude Include="CDummy\DummyDef.h">
+      <Filter>소스 파일\CDummy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">

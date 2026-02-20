@@ -1,4 +1,4 @@
-#include "CLog.h"
+Ôªø#include "CLog.h"
 
 #include "../MemoryManager/MemoryManager.h"
 #include "../NetWork/CNetWork.h"
@@ -117,7 +117,7 @@ unsigned __stdcall LogThread(void* arg)
 	int ret = 0;
 	while (g_bRun)
 	{
-		//1000 Frames 1√ ¥Á 1000 √≥∏Æ
+		//1000 Frames 1Ï¥àÎãπ 1000 Ï≤òÎ¶¨
 		ret = WaitForSingleObject(h_hExit, 1);
 
 		LOG_JOB job;
@@ -135,7 +135,7 @@ unsigned __stdcall LogThread(void* arg)
 		}
 	}
 
-	// ¡æ∑· ¿Ã∫•∆Æ
+	// Ï¢ÖÎ£å Ïù¥Î≤§Ìä∏
 	LOG_JOB job;
 	while (g_LogJobQueue.TryDequeue(job))
 	{
@@ -152,7 +152,5 @@ unsigned __stdcall LogThread(void* arg)
 	return 0;
 }
 
-CLog g_LogTemp("temp.log", "TEMP");
-CLog g_LogServer("server.log", "SERVER");
-CLog g_LogGame("game.log", "GAME");
+CLog g_LogDummy("dummy.log", "TEMP");
 

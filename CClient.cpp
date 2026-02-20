@@ -1,13 +1,15 @@
-#include "CClient.h"
+﻿#include "CClient.h"
 #include "CPacketProc.h"
 #include "CUtill/CUtill.h"
 #include "CDummy/CDummy.h"
 
 static CPacketProc g_cPacketProc;
 
-CClient::CClient(int ClientID)
+CClient::CClient(int ClientID, int testZone, int inZoneClientID)
 {
 	m_nClientID = ClientID;
+	m_nTestZoneID = testZone;
+	m_nInZoneClientID = inZoneClientID;
 
 	m_LoopbackData = static_cast<__int64>(CUtil::Random(1000, 9999));
 	m_nLastSendReqTime = GetTickCount();
@@ -15,10 +17,7 @@ CClient::CClient(int ClientID)
 
 	m_nSendReqDelayTime = CUtil::Random(1, 5) * 1000;	// 1~5 초
 
-	m_nDisConnectRandomCount = CUtil::Random(10, 40); // 10~40
-
-	m_nServerProcID = CUtil::Random(0, 2);
-	m_nDisConnectRandomCount = CUtil::Random(5, 10); // 2000~5000
+	m_nDisConnectRandomCount = CUtil::Random(2000, 5000); // 2000~5000
 }
 
 void CClient::OnRecv(int type, CPacket& cPacket)
@@ -30,12 +29,13 @@ void CClient::OnRecv(int type, CPacket& cPacket)
 void CClient::SendChangePidPacket()
 {
 	st_CTS_ChangePid data;
-	data.pid = m_nServerProcID;
+	data.pid = m_nTestZoneID;
 	
 	CPacket Req;
 	Req << data;
 
-	SendEnqueuePacket(GAME::CHANGEPID, &Req);
+	SendPacket(GAME::CHANGEPID, &Req);
+	m_bWaitServerResponse = true; // 응답 대기 전환
 }
 
 void CClient::SendLoopbackPacket()
@@ -54,7 +54,6 @@ bool CClient::IncrementDisConnectRandomCount()
 	{
 		DisConnect();
 		g_DummyManager.DisconnectClient(m_nClientID);
-		printf("Client DisConnected\n");
 		return true;
 	}
 	return false;
@@ -62,6 +61,9 @@ bool CClient::IncrementDisConnectRandomCount()
 
 bool CClient::IsSend()
 {
+	if (m_bWaitServerResponse)
+		return false;
+
 	if (m_nSendReqDelayTime + m_nLastSendReqTime < GetTickCount())
 	{
 		m_nLastSendReqTime = GetTickCount();
