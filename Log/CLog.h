@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 
@@ -24,6 +24,4 @@ void CreateLogThread();
 void WaitLogThread();
 static unsigned __stdcall LogThread(void* arg);
 
-extern CLog g_LogTemp;
-extern CLog g_LogServer;
-extern CLog g_LogGame;
+extern CLog g_LogDummy;

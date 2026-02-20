@@ -1,9 +1,10 @@
-#include "CNetWork.h"
+ï»¿#include "CNetWork.h"
 #include "CSession.h"
 
 #include "../Stub/StructDef.h"
 #include <Windows.h>
 #include <process.h>
+#include "../Log/CLog.h"
 
 bool g_bRun = true;
 HANDLE CICP;
@@ -16,12 +17,15 @@ void StartThread()
 	if (CICP == NULL)
 		return;
 
+	CreateLogThread();
+
 	hWorkerThread = (HANDLE)_beginthreadex(NULL, 0, WorkerThread, NULL, 0, NULL);
 }
 
 void WaitThread()
 {
 	WaitForSingleObject(hWorkerThread, INFINITE);
+	WaitLogThread();
 }
 
 unsigned __stdcall WorkerThread(void* arg)
@@ -54,11 +58,11 @@ unsigned __stdcall WorkerThread(void* arg)
 				if (err != 64 && err != 997 && err != 0 && err != 10038 && err != 1236)
 				{
 					/*
-					* ERROR_NETNAME_DELETED(64) : TCP ¿¬°áÀÌ ºñÁ¤»óÀû Á¾·á
-					* WSA_IO_PENDING(997) : ÁßÃ¸ I/O ÀÛ¾÷ ³ªÁß¿¡ ¿Ï·á
-					* ERROR_NETWORK_UNREACHABLE(1236) : ³×Æ®¿öÅ© ¿¬°áÀÌ ½Ã½ºÅÛ¿¡ ÀÇÇØ Áß´Ü
-					*	linger ¿É¼ÇÀÌ ¼³Á¤½Ã RST ¸¦ Áï½Ã Àü¼Û RST ¿¡ÀÇ ÇØ ¿¬°áÀÌ Á¾·á µÇ¾î ´ë±âÁßÀÎ recv ¿¡¼­ ¿À·ù
-					* WSAENOTSOCKET(10038) : nonsocket ¿¡ ´ëÇÑ ¼ÒÄÏ ÀÛ¾÷
+					* ERROR_NETNAME_DELETED(64) : TCP ì—°ê²°ì´ ë¹„ì •ìƒì  ì¢…ë£Œ
+					* WSA_IO_PENDING(997) : ì¤‘ì²© I/O ì‘ì—… ë‚˜ì¤‘ì— ì™„ë£Œ
+					* ERROR_NETWORK_UNREACHABLE(1236) : ë„¤íŠ¸ì›Œí¬ ì—°ê²°ì´ ì‹œìŠ¤í…œì— ì˜í•´ ì¤‘ë‹¨
+					*	linger ì˜µì…˜ì´ ì„¤ì •ì‹œ RST ë¥¼ ì¦‰ì‹œ ì „ì†¡ RST ì—ì˜ í•´ ì—°ê²°ì´ ì¢…ë£Œ ë˜ì–´ ëŒ€ê¸°ì¤‘ì¸ recv ì—ì„œ ì˜¤ë¥˜
+					* WSAENOTSOCKET(10038) : nonsocket ì— ëŒ€í•œ ì†Œì¼“ ì‘ì—…
 					printf("WorkerThread GQCS Error %d\n", err);
 					*/
 				}
@@ -66,7 +70,14 @@ unsigned __stdcall WorkerThread(void* arg)
 			}
 			else
 			{
+				DWORD t = GetTickCount();
 				pSession->GetRecvBuffer()->MoveWritePointer(transfrerred);
+
+				if (!pSession->GetQueueEmpty())
+				{
+					DWORD t2 = pSession->GetSendTime();
+					pSession->AddSRNetTime(t - t2);
+				}
 
 				st_Header header;
 
@@ -76,7 +87,7 @@ unsigned __stdcall WorkerThread(void* arg)
 				{
 					size = pSession->GetRecvBuffer()->GetUseSize();
 
-					//°íÁ¤µÈ Å©±âÀÇ Header Å©±â È®ÀÎ
+					//ê³ ì •ëœ í¬ê¸°ì˜ Header í¬ê¸° í™•ì¸
 					if (size < sizeof(st_Header))
 						break;
 
@@ -113,11 +124,11 @@ unsigned __stdcall WorkerThread(void* arg)
 				if (err != 64 && err != 997 && err != 0 && err != 10038 && err != 1236)
 				{
 					/*
-					* ERROR_NETNAME_DELETED(64) : TCP ¿¬°áÀÌ ºñÁ¤»óÀû Á¾·á
-					* WSA_IO_PENDING(997) : ÁßÃ¸ I/O ÀÛ¾÷ ³ªÁß¿¡ ¿Ï·á
-					* ERROR_NETWORK_UNREACHABLE(1236) : ³×Æ®¿öÅ© ¿¬°áÀÌ ½Ã½ºÅÛ¿¡ ÀÇÇØ Áß´Ü
-					*	linger ¿É¼ÇÀÌ ¼³Á¤½Ã RST ¸¦ Áï½Ã Àü¼Û RST ¿¡ÀÇ ÇØ ¿¬°áÀÌ Á¾·á µÇ¾î ´ë±âÁßÀÎ recv ¿¡¼­ ¿À·ù
-					* WSAENOTSOCKET(10038) : nonsocket ¿¡ ´ëÇÑ ¼ÒÄÏ ÀÛ¾÷
+					* ERROR_NETNAME_DELETED(64) : TCP ì—°ê²°ì´ ë¹„ì •ìƒì  ì¢…ë£Œ
+					* WSA_IO_PENDING(997) : ì¤‘ì²© I/O ì‘ì—… ë‚˜ì¤‘ì— ì™„ë£Œ
+					* ERROR_NETWORK_UNREACHABLE(1236) : ë„¤íŠ¸ì›Œí¬ ì—°ê²°ì´ ì‹œìŠ¤í…œì— ì˜í•´ ì¤‘ë‹¨
+					*	linger ì˜µì…˜ì´ ì„¤ì •ì‹œ RST ë¥¼ ì¦‰ì‹œ ì „ì†¡ RST ì—ì˜ í•´ ì—°ê²°ì´ ì¢…ë£Œ ë˜ì–´ ëŒ€ê¸°ì¤‘ì¸ recv ì—ì„œ ì˜¤ë¥˜
+					* WSAENOTSOCKET(10038) : nonsocket ì— ëŒ€í•œ ì†Œì¼“ ì‘ì—…
 					printf("WorkerThread GQCS Error %d\n", err);
 					*/
 				}

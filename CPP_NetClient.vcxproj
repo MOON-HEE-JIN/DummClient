@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="CClient.h" />
     <ClInclude Include="CDummy\CDummy.h" />
+    <ClInclude Include="CDummy\DummyDef.h" />
     <ClInclude Include="CPacketProc.h" />
     <ClInclude Include="CUtill\CPacket.h" />
     <ClInclude Include="CUtill\CUtill.h" />

@@ -1,4 +1,4 @@
-#include "CSession.h"
+Ôªø#include "CSession.h"
 #include <WS2tcpip.h>
 #include "../Stub/StructDef.h"
 
@@ -19,8 +19,13 @@ CSession::CSession()
 	bConnect = false;
 
 	IOCnt = 0;
+
+	m_DebugTotalNetTime = 0;
+	m_DebugTotalCount = 0;
+
 	InitializeCriticalSection(&cs);
 	InitializeCriticalSection(&m_csSendQ);
+	InitializeCriticalSection(&m_DebugCSTime);
 }
 
 CSession::~CSession()
@@ -31,6 +36,31 @@ CSession::~CSession()
 	delete SendQ;
 	DeleteCriticalSection(&cs);
 	DeleteCriticalSection(&m_csSendQ);
+	DeleteCriticalSection(&m_DebugCSTime);
+}
+
+BOOL CSession::GetQueueEmpty()
+{
+	EnterCriticalSection(&m_DebugCSTime);
+	bool ret = m_DebugTimeQueue.empty();
+	LeaveCriticalSection(&m_DebugCSTime);
+	return ret;
+}
+
+DWORD CSession::GetSendTime()
+{
+	EnterCriticalSection(&m_DebugCSTime);
+	DWORD ret = m_DebugTimeQueue.front();
+	m_DebugTimeQueue.pop();
+	LeaveCriticalSection(&m_DebugCSTime);
+	return ret;
+}
+
+void CSession::AddSRNetTime(DWORD t)
+{
+	m_DebugTotalNetTime += t;
+	m_DebugTotalCount.fetch_add(1);
+	m_DebugAvgTime.store((float)m_DebugTotalNetTime / m_DebugTotalCount.load());
 }
 
 int CSession::Connect(const char IP[16], unsigned short Port, HANDLE cicp)
@@ -77,6 +107,14 @@ void CSession::Clear()
 	RecvQ->Clear();
 	SendQ->Clear();
 
+	m_DebugTotalNetTime = 0;
+	m_DebugTotalCount = 0;
+
+	while (!m_DebugTimeQueue.empty())
+	{
+		m_DebugTimeQueue.pop();
+	}
+
 	CloseSocket();
 }
 
@@ -86,6 +124,7 @@ void CSession::CloseSocket()
 	{
 		bConnect = false;
 		closesocket(sock);
+		Clear();
 	}
 }
 
@@ -101,7 +140,7 @@ void CSession::SendPacket(int _type, CPacket* _packet)
 	LeaveCriticalSection(&m_csSendQ);
 
 	SendPost();
-	printf("SendPacket\n");
+	//printf("SendPacket\n");
 }
 
 void CSession::SendEnqueuePacket(int _type, CPacket* _pPacket)
@@ -147,6 +186,14 @@ void CSession::SendPost()
 		wsabuf.len = SendQ->GetDirectDequeueSize();
 		ret = WSASend(sock, &wsabuf, 1, 0, 0, &SendOverlap, NULL);
 	}
+	DWORD t = GetTickCount();
+	if (ret != SOCKET_ERROR)
+	{
+		EnterCriticalSection(&m_DebugCSTime);
+		m_DebugTimeQueue.push(t);
+		LeaveCriticalSection(&m_DebugCSTime);
+	}
+
 	LeaveCriticalSection(&m_csSendQ);
 
 	if (ret == SOCKET_ERROR)
@@ -158,7 +205,6 @@ void CSession::SendPost()
 			if (ret != 10038 && ret != 10054 && ret != WSA_IO_PENDING)
 				LOG_INFO("SEND_WSA_ERROR_%d\n", ret);
 			*/
-
 
 			InterlockedExchange((DWORD*)&bSendFlag, FALSE);
 			if (InterlockedDecrement((DWORD*)&IOCnt) == 0)
@@ -206,7 +252,7 @@ void CSession::RecvPost()
 		ret = WSAGetLastError();
 		if (ret != WSA_IO_PENDING)
 		{
-			// 10054 : ø¨∞·¿Ã ∞≠¡¶∑Œ ≤˜±Ë, 10053 : ∫Ò¡§ªÛ ¡æ∑·
+			// 10054 : Ïó∞Í≤∞Ïù¥ Í∞ïÏ†úÎ°ú ÎÅäÍπÄ, 10053 : ÎπÑÏ†ïÏÉÅ Ï¢ÖÎ£å
 			if (ret != 10054 && ret != 10053)
 			{
 				//printf("-- Recv WSARecv Error %d ---\n", ret);
