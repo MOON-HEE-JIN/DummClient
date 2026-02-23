@@ -3,3 +3,4 @@
 #define MAX_ZONE_NUMBER 6
 
 #define __DUMMY_DISCONNECT__ 0		// 연결 종료
+#define __DUMMY_CHANGE_ZONE__ 1		// Zone 바꾸기

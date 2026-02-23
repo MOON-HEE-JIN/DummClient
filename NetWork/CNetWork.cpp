@@ -1,5 +1,6 @@
 ﻿#include "CNetWork.h"
 #include "CSession.h"
+#include "../CClient.h"
 
 #include "../Stub/StructDef.h"
 #include <Windows.h>
@@ -102,8 +103,11 @@ unsigned __stdcall WorkerThread(void* arg)
 					pSession->GetRecvBuffer()->Dequeue(cPacket.GetWriteBuffPtr(), header.size);
 					cPacket.MoveWritePos(header.size);
 
+					pSession->LockSession();
 					pSession->OnRecv(header.type, cPacket);
+					pSession->UnLockSession();
 				}
+
 				pSession->RecvPost();
 			}
 			pSession->DecrementIOCnt();
@@ -136,7 +140,7 @@ unsigned __stdcall WorkerThread(void* arg)
 			}
 			else
 			{
-				pSession->SendPost();
+				//pSession->SendPost();
 			}
 			pSession->DecrementIOCnt();
 		}

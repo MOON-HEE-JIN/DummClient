@@ -2,6 +2,7 @@
 
 #include "../CClient.h"
 #include <vector>
+#include <unordered_map>
 
 class CDummy
 {
@@ -16,8 +17,6 @@ public:
 	void DisconnectClient(int id);
 private:
 	std::vector<CClient*> m_DummyClients;							// Client 전체 관리
-	std::vector<std::vector<CClient*>> m_DummyClientByZone;			// Client Zone 구분 관리
-
 	int m_nDiconnectClientCount = 0;
 
 	int m_nReConnectTime;

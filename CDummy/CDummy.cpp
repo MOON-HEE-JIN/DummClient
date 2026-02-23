@@ -9,8 +9,6 @@ CDummy::CDummy()
 	
 	m_nLogTime = GetTickCount();
 	m_nLogDelayTime = 5 * 1000;
-
-	m_DummyClientByZone.resize(MAX_ZONE_NUMBER + 1);
 }
 
 CDummy::~CDummy()
@@ -47,29 +45,34 @@ void CDummy::Update()
 			continue;
 		}
 
+		m_DummyClients[i]->LockSession();
 		if (m_DummyClients[i]->IsSend())
 			m_DummyClients[i]->SendPost();
+		m_DummyClients[i]->UnLockSession();
 	}
 
 	if (m_nLogTime + m_nLogDelayTime < GetTickCount())
 	{
 		m_nLogTime = GetTickCount();
-		for (int i = 1; i <= MAX_ZONE_NUMBER; i++)
-		{
-			DWORD total = 0;
-			DWORD avgCnt = 0;
-			for (int j = 0; j < MAX_CONNECT_CLIENT; j++)
-			{
-				float avg = m_DummyClientByZone[i][j]->GetAvgNetTime();
-				if (avg == 0)
-					avg = 0.01f;
-				
-				total += avg;
-				avgCnt++;
-			}
+		float avg[MAX_ZONE_NUMBER+1] = { 0, };
+		int cnt[MAX_ZONE_NUMBER+1] = { 0, };
+		int nLoop = m_DummyClients.size();
 
-			g_LogDummy.ILog("Zone[%d] LatencyClients[%d] AvgLatency[%d]", i, avgCnt, total/avgCnt);
+		for (int i = 0; i < nLoop; i++)
+		{
+			float t = m_DummyClients[i]->GetAvgNetTime();
+			if (t == 0)
+				t = 0.01f;
+
+			//avg[m_DummyClients[i]->GetZoneID()] += t;
+			//cnt[m_DummyClients[i]->GetZoneID()]++;
 		}
+
+		//g_LogDummy.ILog("Zone LatencyClients AvgLatency []::[]:[]");
+		//g_LogDummy.ILog("[1]::[%d]:[%.2f]\t[2]::[%d]:[%.2f]\t[3]::[%d]:[%.2f]"
+		//	, cnt[1], avg[1], cnt[2], avg[2], cnt[3], avg[3]);
+		//g_LogDummy.ILog("[4]::[%d]:[%.2f]\t[5]::[%d]:[%.2f]\t[6]::[%d]:[%.2f]"
+		//	, cnt[4], avg[4], cnt[5], avg[5], cnt[6], avg[6]);
 	}
 }
 
@@ -91,7 +94,7 @@ void CDummy::StartDummyClients()
 				pClient = nullptr;
 			}
 			m_DummyClients.push_back(pClient);
-			m_DummyClientByZone[i].push_back(pClient);
+
 			if(pClient != nullptr)
 				pClient->SendChangePidPacket();
 		}
@@ -102,7 +105,6 @@ void CDummy::SendLoopbackPackets()
 {
 	for (CClient* pClient : m_DummyClients)
 	{
-		pClient->SendChangePidPacket();
 		pClient->SendLoopbackPacket();
 	}
 }
