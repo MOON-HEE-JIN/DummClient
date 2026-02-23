@@ -7,7 +7,8 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 {
 	st_STC_LoopBack data;
 	pReqPacket >> data;
-	
+
+	int zone = data.zone;
 	__int64 b = data.data;
 	
 	if (b != pTarget->GetLoopbackData())
@@ -16,13 +17,23 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 		return -1;
 	}
 	
+	if (zone != pTarget->GetZoneID() && zone != 0)
+	{
+		g_LogDummy.ELog("Not Equal Zone Clinet[%d] - Server[%d]", pTarget->GetZoneID(), zone);
+	}
+
 #if __DUMMY_DISCONNECT__
 	pTarget->IncrementDisConnectRandomCount();
 #endif // __DUMMY_DISCONNECT__
 
+#if __DUMMY_CHANGE_ZONE__
+	pTarget->ChangeZoneIDRequest();
+#endif //__DUMMY_CHANGE_ZONE__
+
 	st_CTS_LoopBack res;
 	res.data = pTarget->IncrementLoopbackData();
-	
+	res.zone = pTarget->GetZoneID();
+
 	CPacket pRes;
 	pRes << res;
 
@@ -48,6 +59,7 @@ int CPacketProc::DO_GAME_CHANGEPID(CClient* pTarget, CPacket& pReqPacket)
 	if (res.ret != ERROR_CODE::NOT_ERROR && res.ret != ERROR_CODE::EQUAL_PID)
 	{
 		g_LogDummy.ELog("Error Change Pid ret : %d", res.ret);
+		pTarget->ReStoreZoneID();
 	}
 
 	pTarget->CompletedWaitServerResponse();

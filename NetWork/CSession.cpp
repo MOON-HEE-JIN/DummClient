@@ -128,7 +128,7 @@ void CSession::CloseSocket()
 	}
 }
 
-void CSession::SendPacket(int _type, CPacket* _packet)
+int CSession::SendPacket(int _type, CPacket* _packet)
 {
 	EnterCriticalSection(&m_csSendQ);
 	st_Header header;
@@ -139,7 +139,7 @@ void CSession::SendPacket(int _type, CPacket* _packet)
 	ret = SendQ->Enqueue(_packet->GetReadBuffPtr(), _packet->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 
-	SendPost();
+	return SendPost();
 	//printf("SendPacket\n");
 }
 
@@ -155,15 +155,16 @@ void CSession::SendEnqueuePacket(int _type, CPacket* _pPacket)
 	LeaveCriticalSection(&m_csSendQ);
 }
 
-void CSession::SendPost()
+int CSession::SendPost()
 {
+	int len = 0;
 	if (InterlockedExchange(&bSendFlag, TRUE) == TRUE)
-		return;
+		return 0;
 
 	if (SendQ->GetUseSize() <= 0)
 	{
 		InterlockedExchange(&bSendFlag, FALSE);
-		return;
+		return 0;
 	}
 	InterlockedIncrement(&IOCnt);
 
@@ -177,6 +178,7 @@ void CSession::SendPost()
 		wsabuf[0].len = SendQ->GetDirectDequeueSize();
 		wsabuf[1].buf = SendQ->GetFirstPointer();
 		wsabuf[1].len = SendQ->GetUseSize() - SendQ->GetDirectDequeueSize();
+		len = wsabuf[0].len + wsabuf[1].len;
 		ret = WSASend(sock, wsabuf, 2, 0, 0, &SendOverlap, NULL);
 	}
 	else
@@ -184,6 +186,7 @@ void CSession::SendPost()
 		WSABUF wsabuf;
 		wsabuf.buf = SendQ->GetReadPointer();
 		wsabuf.len = SendQ->GetDirectDequeueSize();
+		len = wsabuf.len;
 		ret = WSASend(sock, &wsabuf, 1, 0, 0, &SendOverlap, NULL);
 	}
 	DWORD t = GetTickCount();
@@ -217,6 +220,7 @@ void CSession::SendPost()
 			//printf("%d Send IO_PENDING\n", (int)sock);
 		}
 	}
+	return len;
 }
 
 void CSession::RecvPost()

@@ -45,6 +45,9 @@ public:
 
 	void LockSendQ() { EnterCriticalSection(&m_csSendQ); }
 	void UnLockSendQ() { LeaveCriticalSection(&m_csSendQ); }
+
+	void LockSession() { EnterCriticalSection(&cs); }
+	void UnLockSession() { LeaveCriticalSection(&cs); }
 public:
 	RingQueue* GetSendBuffer() { return SendQ; }
 	RingQueue* GetRecvBuffer() { return RecvQ; }
@@ -65,8 +68,8 @@ public:
 	int Connect(const char IP[16], unsigned short Port, HANDLE cicp);
 	void Clear();
 	void CloseSocket();
-	void SendPacket(int _type, CPacket* _pPacket);
+	int SendPacket(int _type, CPacket* _pPacket);
 	void SendEnqueuePacket(int _type, CPacket* _pPacket);
-	void SendPost();
+	int SendPost();
 	void RecvPost();
 };
