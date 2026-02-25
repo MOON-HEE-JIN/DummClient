@@ -35,14 +35,14 @@ void CClient::SendChangePidPacket()
 	if (m_bWaitServerResponse.load())
 		return;
 	m_bWaitServerResponse.store(true); // 응답 대기 전환
-	st_CTS_ChangePid data;
-	data.pid = m_nZoneID;
+	st_CTS_ChangeZone data;
+	data.zone = m_nZoneID;
 	
 	CPacket Req;
 	Req << data;
 
-	int len = SendPacket(GAME::CHANGEPID, &Req);
-	if (len > sizeof(st_CTS_ChangePid) + sizeof(st_Header))
+	int len = SendPacket(&Req);
+	if (len > sizeof(st_CTS_ChangeZone) + sizeof(st_Header))
 	{
 		int a = 100;
 		a++;
@@ -57,12 +57,23 @@ void CClient::SendLoopbackPacket()
 	CPacket pRes;
 	pRes << data;
 	
-	SendEnqueuePacket(GAME::LOOPBACK, &pRes);
+	SendEnqueuePacket(&pRes);
 }
 
 void CClient::ReConnect(const char IP[16], unsigned short Port, HANDLE cicp)
 {
 	Connect(IP, Port, cicp);
+}
+
+void CClient::CreateCharInfo(st_Vector pos)
+{
+	m_stPosition = pos;
+}
+
+void CClient::SetServerClientID(int value)
+{
+	m_nServerClientID = value;
+	g_DummyManager.RegisterServerIDtoClientID(value, m_nClientID);
 }
 
 bool CClient::IncrementDisConnectRandomCount()

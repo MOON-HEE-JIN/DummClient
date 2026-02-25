@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Stub/CLIENT_STUB.h"
 #include "Stub/CLIENT_STUB.cpp"
@@ -15,12 +15,20 @@ public:
 	CPacketProc() {};
 	~CPacketProc() {};
 private:
-	// StubÀ»(¸¦) ÅëÇØ »ó¼ÓµÊ
+	// Stubì„(ë¥¼) í†µí•´ ìƒì†ë¨
 	int DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket);
 	
 	int DO_ERROR_PACKET(CClient* pTarget, CPacket& pReqPacket);
 	int DO_ERROR_RESULT(CClient* pTarget, int ret, int type);
 
-	// StubÀ»(¸¦) ÅëÇØ »ó¼ÓµÊ
-	int DO_GAME_CHANGEPID(CClient* pTarget, CPacket& pReqPacket) override;
+	// Stubì„(ë¥¼) í†µí•´ ìƒì†ë¨
+	int DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket) override;
+
+	// Stubì„(ë¥¼) í†µí•´ ìƒì†ë¨
+	int DO_GAME_CREATECHAR(CClient* pTarget, CPacket& pReqPacket) override;
+	int DO_GAME_LEAVEZONE(CClient* pTarget, CPacket& pReqPacket) override;
+
+	// Stubì„(ë¥¼) í†µí•´ ìƒì†ë¨
+	int DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket) override;
+	int DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket) override;
 };

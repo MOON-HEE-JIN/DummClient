@@ -64,15 +64,15 @@ void CDummy::Update()
 			if (t == 0)
 				t = 0.01f;
 
-			//avg[m_DummyClients[i]->GetZoneID()] += t;
-			//cnt[m_DummyClients[i]->GetZoneID()]++;
+			avg[m_DummyClients[i]->GetZoneID()] += t;
+			cnt[m_DummyClients[i]->GetZoneID()]++;
 		}
 
-		//g_LogDummy.ILog("Zone LatencyClients AvgLatency []::[]:[]");
-		//g_LogDummy.ILog("[1]::[%d]:[%.2f]\t[2]::[%d]:[%.2f]\t[3]::[%d]:[%.2f]"
-		//	, cnt[1], avg[1], cnt[2], avg[2], cnt[3], avg[3]);
-		//g_LogDummy.ILog("[4]::[%d]:[%.2f]\t[5]::[%d]:[%.2f]\t[6]::[%d]:[%.2f]"
-		//	, cnt[4], avg[4], cnt[5], avg[5], cnt[6], avg[6]);
+		g_LogDummy.ILog("Zone LatencyClients AvgLatency []::[]:[]");
+		g_LogDummy.ILog("[1]::[%d]:[%.2f]\t[2]::[%d]:[%.2f]\t[3]::[%d]:[%.2f]"
+			, cnt[1], avg[1], cnt[2], avg[2], cnt[3], avg[3]);
+		g_LogDummy.ILog("[4]::[%d]:[%.2f]\t[5]::[%d]:[%.2f]\t[6]::[%d]:[%.2f]"
+			, cnt[4], avg[4], cnt[5], avg[5], cnt[6], avg[6]);
 	}
 }
 
@@ -103,15 +103,48 @@ void CDummy::StartDummyClients()
 
 void CDummy::SendLoopbackPackets()
 {
+#if __DUMMY_LOOPBACK__
 	for (CClient* pClient : m_DummyClients)
 	{
 		pClient->SendLoopbackPacket();
 	}
+#endif
 }
 
 void CDummy::DisconnectClient(int id)
 {
 	m_nDiconnectClientCount++;
+}
+
+bool CDummy::RegisterServerIDtoClientID(int sID, int cID)
+{
+	if (m_DummyClientID.find(sID) != m_DummyClientID.end())
+		return false;
+
+	m_DummyClientID[sID] = cID;
+}
+
+int CDummy::IsExistZoneClient(int zone, int sID)
+{
+	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
+		return DUMMY_ERROR::NOT_EXIST_CLIENT;
+
+	int ClientID = m_DummyClientID[sID];
+	for (int i = 0; i < m_nMaxConnectClient; i++)
+	{
+		if (zone != m_DummyClients[i]->GetZoneID())
+			return DUMMY_ERROR::NOT_EQUAL_ZONE;
+	}
+
+	return 0;
+}
+
+int CDummy::GetServerIDtoClientID(int sID)
+{
+	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
+		return -1;
+
+	return m_DummyClientID[sID];
 }
 
 

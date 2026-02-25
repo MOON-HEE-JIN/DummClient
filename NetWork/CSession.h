@@ -68,8 +68,8 @@ public:
 	int Connect(const char IP[16], unsigned short Port, HANDLE cicp);
 	void Clear();
 	void CloseSocket();
-	int SendPacket(int _type, CPacket* _pPacket);
-	void SendEnqueuePacket(int _type, CPacket* _pPacket);
+	int SendPacket(CPacket* _pPacket);
+	void SendEnqueuePacket(CPacket* _pPacket);
 	int SendPost();
 	void RecvPost();
 };
