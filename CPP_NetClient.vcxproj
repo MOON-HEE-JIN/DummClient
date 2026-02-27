@@ -144,6 +144,7 @@
     <ClInclude Include="Stub\CLIENT_STUB.h" />
     <ClInclude Include="Stub\EnumDef.h" />
     <ClInclude Include="Stub\PacketEnumDef.h" />
+    <ClInclude Include="Stub\ProjectDefineStruct.h" />
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
   </ItemGroup>

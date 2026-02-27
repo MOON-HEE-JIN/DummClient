@@ -128,30 +128,22 @@ void CSession::CloseSocket()
 	}
 }
 
-int CSession::SendPacket(int _type, CPacket* _packet)
+int CSession::SendPacket(CPacket* _packet)
 {
 	EnterCriticalSection(&m_csSendQ);
-	st_Header header;
-	header.type = _type;
-	header.size = _packet->GetDataSize();
-	int ret = SendQ->Enqueue((char*)&header, sizeof(st_Header));
-
-	ret = SendQ->Enqueue(_packet->GetReadBuffPtr(), _packet->GetDataSize());
+	
+	int ret = SendQ->Enqueue(_packet->GetReadBuffPtr(), _packet->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 
 	return SendPost();
 	//printf("SendPacket\n");
 }
 
-void CSession::SendEnqueuePacket(int _type, CPacket* _pPacket)
+void CSession::SendEnqueuePacket(CPacket* _pPacket)
 {
 	EnterCriticalSection(&m_csSendQ);
-	st_Header header;
-	header.type = _type;
-	header.size = _pPacket->GetDataSize();
-	int ret = SendQ->Enqueue((char*)&header, sizeof(st_Header));
-
-	ret = SendQ->Enqueue(_pPacket->GetReadBuffPtr(), _pPacket->GetDataSize());
+	
+	int ret = SendQ->Enqueue(_pPacket->GetReadBuffPtr(), _pPacket->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 }
 

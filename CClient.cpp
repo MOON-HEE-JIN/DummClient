@@ -30,19 +30,27 @@ void CClient::OnRecv(int type, CPacket& cPacket)
 	g_cPacketProc.DO_GAME_Proc(type, this, cPacket);
 }
 
+void CClient::DummyTestPacketSend()
+{
+#if __DUMMY_LOOPBACK__
+	SendLoopbackPacket();
+#endif // __DUMMY_LOOPBACK__
+	SendMovestartPacket();
+}
+
 void CClient::SendChangePidPacket()
 {
 	if (m_bWaitServerResponse.load())
 		return;
 	m_bWaitServerResponse.store(true); // 응답 대기 전환
-	st_CTS_ChangePid data;
-	data.pid = m_nZoneID;
+	st_CTS_ChangeZone data;
+	data.zone = m_nZoneID;
 	
 	CPacket Req;
 	Req << data;
 
-	int len = SendPacket(GAME::CHANGEPID, &Req);
-	if (len > sizeof(st_CTS_ChangePid) + sizeof(st_Header))
+	int len = SendPacket(&Req);
+	if (len > sizeof(st_CTS_ChangeZone) + sizeof(st_Header))
 	{
 		int a = 100;
 		a++;
@@ -57,7 +65,47 @@ void CClient::SendLoopbackPacket()
 	CPacket pRes;
 	pRes << data;
 	
-	SendEnqueuePacket(GAME::LOOPBACK, &pRes);
+	SendEnqueuePacket(&pRes);
+}
+
+void CClient::SendMovestartPacket()
+{
+	m_stGoalPosition = m_stPosition + CUtil::RandomVector3F(-300, 300.f);
+	m_stDirection = m_stPosition.Direction(m_stGoalPosition);
+
+	st_CTS_MoveStart req;
+	req.pos = m_stPosition;
+	req.goal = m_stGoalPosition;
+	req.dir = m_stDirection;
+
+	CPacket pReq;
+	pReq << req;
+
+	m_dMoveStartTime = CUtil::GetQPCNowTime();
+	SendEnqueuePacket(&pReq);
+}
+
+void CClient::SendMoveStopPacket()
+{
+	st_CTS_MoveStop req;
+	req.pos = m_stPosition;
+
+	CPacket pReq;
+	pReq << req;
+
+	SendEnqueuePacket(&pReq);
+}
+
+void CClient::CreateCharInfo(st_Vector3F pos, float speed)
+{
+	m_stPosition = pos;
+	m_fSpeed = speed;
+}
+
+void CClient::SetServerClientID(int value)
+{
+	m_nServerClientID = value;
+	g_DummyManager.RegisterServerIDtoClientID(value, m_nClientID);
 }
 
 void CClient::ReConnect(const char IP[16], unsigned short Port, HANDLE cicp)
@@ -109,4 +157,27 @@ bool CClient::IsSend()
 		return true;
 	}
 	return false;
+}
+
+void CClient::MoveStop(st_Vector3F comparevector)
+{
+	double moveTime = CUtil::GetQPCNowTime() - m_dMoveStartTime;
+
+	int nLoop = moveTime / FIXED_DELTA;
+
+	m_stPosition += m_stDirection * (m_fSpeed * nLoop) * FIXED_DELTA;
+
+	//st_Vector3F diff = m_stGoalPosition - m_stPosition;
+	st_Vector3F compDiff = comparevector - m_stPosition;
+
+	if (compDiff.Length() > 5)
+		g_LogDummy.ELog("Move Complete Error : Compare Diff [%f]", compDiff.Length());
+	else
+		g_LogDummy.ELog("=== Move Complete : SUCESS [%d] ===", m_nClientID);
+
+	m_stPosition = m_stGoalPosition;
+
+
+	// Move Complete 응답이 왔으니 바로 Move Start 요청
+	SendMovestartPacket();
 }

@@ -90,6 +90,9 @@
     <ClInclude Include="CDummy\DummyDef.h">
       <Filter>소스 파일\CDummy</Filter>
     </ClInclude>
+    <ClInclude Include="Stub\ProjectDefineStruct.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
