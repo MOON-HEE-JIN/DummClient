@@ -13,7 +13,6 @@ void main()
 
 	g_DummyManager.StartDummyClients();
 	printf("=== Send Start ===\n");
-	g_DummyManager.SendLoopbackPackets();
 	while (true)
 	{
 		g_DummyManager.Update();
