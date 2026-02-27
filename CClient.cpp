@@ -96,11 +96,6 @@ void CClient::SendMoveStopPacket()
 	SendEnqueuePacket(&pReq);
 }
 
-void CClient::ReConnect(const char IP[16], unsigned short Port, HANDLE cicp)
-{
-	Connect(IP, Port, cicp);
-}
-
 void CClient::CreateCharInfo(st_Vector3F pos, float speed)
 {
 	m_stPosition = pos;
