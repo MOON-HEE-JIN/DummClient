@@ -101,15 +101,6 @@ void CDummy::StartDummyClients()
 	}
 }
 
-void CDummy::SendLoopbackPackets()
-{
-#if __DUMMY_LOOPBACK__
-	for (CClient* pClient : m_DummyClients)
-	{
-		pClient->SendLoopbackPacket();
-	}
-#endif
-}
 
 void CDummy::DisconnectClient(int id)
 {
@@ -132,6 +123,8 @@ int CDummy::IsExistZoneClient(int zone, int sID)
 	int ClientID = m_DummyClientID[sID];
 	for (int i = 0; i < m_nMaxConnectClient; i++)
 	{
+		if (ClientID != m_DummyClients[i]->GetClientID())
+			continue;
 		if (zone != m_DummyClients[i]->GetZoneID())
 			return DUMMY_ERROR::NOT_EQUAL_ZONE;
 	}
@@ -145,6 +138,14 @@ int CDummy::GetServerIDtoClientID(int sID)
 		return -1;
 
 	return m_DummyClientID[sID];
+}
+
+CClient* CDummy::GetClientByServerID(int sID)
+{
+	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
+		return nullptr;
+
+	return m_DummyClients[m_DummyClientID[sID]];
 }
 
 

@@ -1,6 +1,7 @@
-#include "CUtill.h"
+﻿#include "CUtill.h"
 
 #include <random>
+#include <Windows.h>
 
 #define __FIX_SEED__
 
@@ -18,4 +19,25 @@ int CUtil::Random(int Min, int Max)
 	std::uniform_int_distribution<> dist(Min, Max);
 
 	return dist(gen);
+}
+
+st_Vector3F CUtil::RandomVector2F(float Min, float Max)
+{
+	return st_Vector3F(Random(Min,Max), 0, Random(Min, Max));
+}
+
+st_Vector3F CUtil::RandomVector3F(float Min, float Max)
+{
+	return st_Vector3F(Random(Min, Max), Random(Min, Max), Random(Min, Max));
+}
+
+double CUtil::GetQPCNowTime()
+{
+	static LARGE_INTEGER freq = [] {
+		LARGE_INTEGER f; QueryPerformanceFrequency(&f); return f;
+		}();
+
+	LARGE_INTEGER now;
+	QueryPerformanceCounter(&now);
+	return (double)now.QuadPart / (double)freq.QuadPart;
 }

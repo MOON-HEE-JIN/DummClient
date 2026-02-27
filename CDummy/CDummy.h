@@ -13,7 +13,6 @@ public:
 	void Update();
 	void StartDummyClients();
 
-	void SendLoopbackPackets();
 	void DisconnectClient(int id);
 	bool RegisterServerIDtoClientID(int sID, int cID);
 	int IsExistZoneClient(int zone, int sID);
@@ -31,6 +30,7 @@ private:
 
 public:
 	int GetServerIDtoClientID(int sID);
+	CClient* GetClientByServerID(int sID);
 };
 
 extern CDummy g_DummyManager;
