@@ -113,6 +113,11 @@ void CClient::SetServerClientID(int value)
 	g_DummyManager.RegisterServerIDtoClientID(value, m_nClientID);
 }
 
+void CClient::ReConnect(const char IP[16], unsigned short Port, HANDLE cicp)
+{
+	Connect(IP, Port, cicp);
+}
+
 bool CClient::IncrementDisConnectRandomCount()
 {
 	if (++m_nLoopbackSendCount > m_nDisConnectRandomCount)
@@ -146,6 +151,11 @@ bool CClient::IsSend()
 	if (m_bWaitServerResponse)
 		return false;
 
+	if (m_bWaitServerResponse)
+	{
+		int a = 100;
+		a++;
+	}
 	if (m_nSendReqDelayTime + m_nLastSendReqTime < GetTickCount())
 	{
 		m_nLastSendReqTime = GetTickCount();
