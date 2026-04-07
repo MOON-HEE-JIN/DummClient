@@ -130,12 +130,18 @@
     <ClInclude Include="CClient.h" />
     <ClInclude Include="CDummy\CDummy.h" />
     <ClInclude Include="CDummy\DummyDef.h" />
+    <ClInclude Include="CGrid\CGrid.h" />
+    <ClInclude Include="CGrid\GridDefine.h" />
     <ClInclude Include="CPacketProc.h" />
+    <ClInclude Include="CUtill\CBinFile.h" />
+    <ClInclude Include="CUtill\CBinFileDefine.h" />
     <ClInclude Include="CUtill\CPacket.h" />
     <ClInclude Include="CUtill\CUtill.h" />
     <ClInclude Include="CUtill\RingQueue.h" />
     <ClInclude Include="GameServerDef.h" />
     <ClInclude Include="Log\CLog.h" />
+    <ClInclude Include="Manager\CBinFileManager.h" />
+    <ClInclude Include="Manager\CZoneManager.h" />
     <ClInclude Include="MemoryManager\CHazardMemoryPool_FromGPT.h" />
     <ClInclude Include="MemoryManager\CLockFreeQueue_FromGPT.h" />
     <ClInclude Include="MemoryManager\MemoryManager.h" />
@@ -147,6 +153,10 @@
     <ClInclude Include="Stub\ProjectDefineStruct.h" />
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
+    <ClInclude Include="Zone\CBinVoxel.h" />
+    <ClInclude Include="Zone\CBinZone.h" />
+    <ClInclude Include="Zone\CBinZoneIdx.h" />
+    <ClInclude Include="Zone\ZoneDefines.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CClient.cpp">
@@ -154,16 +164,22 @@
     </ClCompile>
     <ClCompile Include="CDummy\CDummy.cpp" />
     <ClCompile Include="CPacketProc.cpp" />
+    <ClCompile Include="CUtill\CBinFile.cpp" />
     <ClCompile Include="CUtill\CPacket.cpp" />
     <ClCompile Include="CUtill\CUtill.cpp" />
     <ClCompile Include="CUtill\RingQueue.cpp" />
     <ClCompile Include="Log\CLog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Manager\CBinFileManager.cpp" />
+    <ClCompile Include="Manager\CZoneManager.cpp" />
     <ClCompile Include="MemoryManager\MemoryManager.cpp" />
     <ClCompile Include="NetWork\CNetWork.cpp" />
     <ClCompile Include="NetWork\CSession.cpp" />
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
+    <ClCompile Include="Zone\CBinVoxel.cpp" />
+    <ClCompile Include="Zone\CBinZone.cpp" />
+    <ClCompile Include="Zone\CBinZoneIdx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

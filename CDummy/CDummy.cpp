@@ -113,6 +113,7 @@ bool CDummy::RegisterServerIDtoClientID(int sID, int cID)
 		return false;
 
 	m_DummyClientID[sID] = cID;
+	return true;
 }
 
 int CDummy::IsExistZoneClient(int zone, int sID)
