@@ -45,6 +45,11 @@ struct st_Vector3F
 		this->Y = y;
 		this->Z = z;
 		return *this;
+  }
+  
+	st_Vector3F operator*(float scalar) const
+	{
+		return st_Vector3F(X * scalar, Y * scalar, Z * scalar);
 	}
 
 	float Length() const
