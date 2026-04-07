@@ -31,6 +31,15 @@
     <Filter Include="소스 파일\CDummy">
       <UniqueIdentifier>{cd45fc6c-b3c1-4490-a986-b1c79af1b22d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Zone">
+      <UniqueIdentifier>{1ba15bae-b17d-4542-bef8-5dbabfcfda65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Manager">
+      <UniqueIdentifier>{ede82e67-a2e6-4cd3-b3ba-b01b3cd4f8f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\CGrid">
+      <UniqueIdentifier>{8e4a12fe-e1d4-4cb8-b507-2d079ee4b7a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NetWork\CNetWork.h">
@@ -93,6 +102,36 @@
     <ClInclude Include="Stub\ProjectDefineStruct.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
+    <ClInclude Include="CUtill\CBinFile.h">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClInclude>
+    <ClInclude Include="CUtill\CBinFileDefine.h">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinZone.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinZoneIdx.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\ZoneDefines.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\CZoneManager.h">
+      <Filter>소스 파일\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\CBinFileManager.h">
+      <Filter>소스 파일\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="CGrid\CGrid.h">
+      <Filter>소스 파일\CGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="CGrid\GridDefine.h">
+      <Filter>소스 파일\CGrid</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinVoxel.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -133,6 +172,24 @@
     </ClCompile>
     <ClCompile Include="CDummy\CDummy.cpp">
       <Filter>소스 파일\CDummy</Filter>
+    </ClCompile>
+    <ClCompile Include="CUtill\CBinFile.cpp">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinZone.cpp">
+      <Filter>소스 파일\Zone</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinZoneIdx.cpp">
+      <Filter>소스 파일\Zone</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\CZoneManager.cpp">
+      <Filter>소스 파일\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\CBinFileManager.cpp">
+      <Filter>소스 파일\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinVoxel.cpp">
+      <Filter>소스 파일\Zone</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

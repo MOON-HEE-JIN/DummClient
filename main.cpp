@@ -6,10 +6,15 @@
 #include "CClient.h"
 #include "CPacketProc.h"
 #include "CDummy/CDummy.h"
+#include "Manager/CBinFileManager.h"
+
 void main()
-{
-	
+{	
 	StartThread();
+
+	CBinFileManager bin;
+
+	bin.LoadBinFiles();
 
 	g_DummyManager.StartDummyClients();
 	printf("=== Send Start ===\n");
