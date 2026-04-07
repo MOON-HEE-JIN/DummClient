@@ -70,7 +70,7 @@ void CClient::SendLoopbackPacket()
 
 void CClient::SendMovestartPacket()
 {
-	m_stGoalPosition = m_stPosition + CUtil::RandomVector3F(-300, 300.f);
+	m_stGoalPosition = m_stPosition + CUtil::RandomVector3F(-300, 300);
 	m_stDirection = m_stPosition.Direction(m_stGoalPosition);
 
 	st_CTS_MoveStart req;
@@ -163,7 +163,7 @@ void CClient::MoveStop(st_Vector3F comparevector)
 {
 	double moveTime = CUtil::GetQPCNowTime() - m_dMoveStartTime;
 
-	int nLoop = moveTime / FIXED_DELTA;
+	int nLoop = (int)(moveTime / FIXED_DELTA);
 
 	m_stPosition += m_stDirection * (m_fSpeed * nLoop) * FIXED_DELTA;
 
