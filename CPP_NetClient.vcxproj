@@ -132,8 +132,8 @@
     <ClInclude Include="CDummy\DummyDef.h" />
     <ClInclude Include="CPacketProc.h" />
     <ClInclude Include="CUtill\CPacket.h" />
+    <ClInclude Include="CUtill\CRingBuffer.h" />
     <ClInclude Include="CUtill\CUtill.h" />
-    <ClInclude Include="CUtill\RingQueue.h" />
     <ClInclude Include="GameServerDef.h" />
     <ClInclude Include="Log\CLog.h" />
     <ClInclude Include="MemoryManager\CHazardMemoryPool_FromGPT.h" />
@@ -155,8 +155,8 @@
     <ClCompile Include="CDummy\CDummy.cpp" />
     <ClCompile Include="CPacketProc.cpp" />
     <ClCompile Include="CUtill\CPacket.cpp" />
+    <ClCompile Include="CUtill\CRingBuffer.cpp" />
     <ClCompile Include="CUtill\CUtill.cpp" />
-    <ClCompile Include="CUtill\RingQueue.cpp" />
     <ClCompile Include="Log\CLog.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryManager\MemoryManager.cpp" />

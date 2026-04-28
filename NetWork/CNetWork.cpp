@@ -101,22 +101,11 @@ unsigned __stdcall WorkerThread(void* arg)
 					pSession->GetRecvBuffer()->MoveReadPointer(sizeof(st_Header));
 					CPacket cPacket;
 					
-					pSession->m_vecDebugPointer.push_back(pSession->GetRecvBuffer()->GetReadPointer());
-
 					pSession->GetRecvBuffer()->Dequeue(cPacket.GetWriteBuffPtr(), header.size);
 					cPacket.MoveWritePos(header.size);
 
 					pSession->LockSession();
-					
-					st_DebugHeader debug;
-					debug.type = header.type;
-					debug.size = header.size;
-					pSession->m_vecDebugHeader.push_back(debug);
-					
-					char* pDebug = new char[cPacket.GetDataSize()];
-					memcpy(pDebug, cPacket.GetReadBuffPtr(), cPacket.GetDataSize());
-					pSession->m_vecDebugPacket.push_back(pDebug);
-
+					// 지금은 Clinet 직접 -> 로 실행 추후 에 Job 형태로 수정
 					pSession->OnRecv(header.type, cPacket);
 					
 					pSession->UnLockSession();
