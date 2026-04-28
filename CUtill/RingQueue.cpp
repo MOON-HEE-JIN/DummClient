@@ -1,4 +1,4 @@
-#include "RingQueue.h"
+ï»¿#include "RingQueue.h"
 
 #include<malloc.h>
 #include <memory.h>
@@ -13,7 +13,7 @@ RingQueue::RingQueue()
 	ReadPointer = buffer;
 	WritePointer = buffer;
 	FirstBufferPoint = buffer;
-	EndBufferPoint = buffer + DEFAULTSIZE - 1;
+	EndBufferPoint = buffer + DEFAULTSIZE;
 	PacketBufferPointer = buffer;
 
 }
@@ -24,7 +24,7 @@ RingQueue::RingQueue(int size)
 	ReadPointer = buffer;
 	WritePointer = buffer;
 	FirstBufferPoint = buffer;
-	EndBufferPoint = buffer + size - 1;
+	EndBufferPoint = buffer + size;
 	PacketBufferPointer = buffer;
 }
 
@@ -35,22 +35,24 @@ RingQueue::~RingQueue()
 
 int RingQueue::GetUseSize()
 {
-	if(WritePointer >= ReadPointer)
+	if (WritePointer >= ReadPointer)
 		return WritePointer - ReadPointer;
 	return (WritePointer - FirstBufferPoint) + (EndBufferPoint - ReadPointer);
 }
 
 int RingQueue::GetFreeSize()
 {
-	if (WritePointer >= ReadPointer)
-		return (ReadPointer - FirstBufferPoint) + (EndBufferPoint - WritePointer);
-	return ReadPointer - WritePointer - 1;
+	return (EndBufferPoint - FirstBufferPoint) - GetUseSize() - 1;
 }
 
 int RingQueue::GetDirectEnqueueSize()
 {
 	if (WritePointer >= ReadPointer)
+	{
+		if (ReadPointer == FirstBufferPoint)
+			return EndBufferPoint - WritePointer;
 		return EndBufferPoint - WritePointer;
+	}
 	return ReadPointer - WritePointer - 1;
 }
 
@@ -59,7 +61,7 @@ int RingQueue::GetDirectDequeueSize()
 	if (WritePointer >= ReadPointer)
 		return WritePointer - ReadPointer;
 	return (EndBufferPoint - ReadPointer);
-	
+
 }
 
 int RingQueue::MoveWritePointer(int size)
@@ -91,20 +93,20 @@ int RingQueue::MovePacketPointer(int size)
 		int OverPointer = PacketBufferPointer - EndBufferPoint;
 		PacketBufferPointer = FirstBufferPoint + OverPointer;
 	}
-	
+
 	return 0;
 }
 int RingQueue::Enqueue(const char* buf, int size)
 {
 	if (GetFreeSize() < size) return 0;
-	//Å©±â°¡ ÃæºÐÇÒ¶§
+	//í¬ê¸°ê°€ ì¶©ë¶„í• ë•Œ
 	if (GetDirectEnqueueSize() >= size)
 	{
 		memcpy_s(WritePointer, size, buf, size);
 		MoveWritePointer(size);
 		return size;
 	}
-	
+
 	const char* CopyPointer = buf;
 	int EnqueueSize = GetDirectEnqueueSize();
 	memcpy_s(WritePointer, EnqueueSize, CopyPointer, EnqueueSize);
@@ -121,7 +123,7 @@ int RingQueue::Enqueue(const char* buf, int size)
 int RingQueue::Dequeue(char* buf, int size)
 {
 	if (GetUseSize() < size) return 0;
-	//Å©±â°¡ ÃæºÐÇÒ¶§
+	//í¬ê¸°ê°€ ì¶©ë¶„í• ë•Œ
 	if (GetDirectDequeueSize() >= size)
 	{
 		memcpy_s(buf, size, ReadPointer, size);
@@ -148,7 +150,7 @@ int RingQueue::Dequeue(char* buf, int size)
 int RingQueue::Peek(char* buf, int size)
 {
 	if (GetUseSize() < size) return 0;
-	//Å©±â°¡ ÃæºÐÇÒ¶§
+	//í¬ê¸°ê°€ ì¶©ë¶„í• ë•Œ
 	if (GetDirectDequeueSize() >= size)
 	{
 		memcpy_s(buf, size, ReadPointer, size);
@@ -166,6 +168,4 @@ int RingQueue::Peek(char* buf, int size)
 	memcpy_s(CopyPointer, RemzinSize, ReadPointer, RemzinSize);
 	ReadPointer = origniPointer;
 	return size;
-} 
-
-
+}

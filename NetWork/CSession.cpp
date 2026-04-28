@@ -251,7 +251,7 @@ void CSession::RecvPost()
 			// 10054 : 연결이 강제로 끊김, 10053 : 비정상 종료
 			if (ret != 10054 && ret != 10053)
 			{
-				//printf("-- Recv WSARecv Error %d ---\n", ret);
+				printf("-- Recv WSARecv Error %d ---\n", ret);
 			}
 			if (InterlockedDecrement(&IOCnt) == 0)
 			{

@@ -3,9 +3,9 @@
 #define MAX_ZONE_NUMBER 6
 #define FIXED_DELTA 0.01667f
 
-#define __DUMMY_LOOPBACK__		0		// loopback
+#define __DUMMY_LOOPBACK__		1		// loopback
 #define __DUMMY_DISCONNECT__	0		// 연결 종료
-#define __DUMMY_CHANGE_ZONE__	0		// Zone 바꾸기
+#define __DUMMY_CHANGE_ZONE__	1		// Zone 바꾸기
 
 
 enum DUMMY_ERROR

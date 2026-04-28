@@ -40,8 +40,8 @@ void CDummy::Update()
 				continue;
 
 			m_DummyClients[i]->ReConnect("127.0.0.1", 7799, (HANDLE)GetCICPPort());
-
-			m_DummyClients[i]->SendChangePidPacket();
+			m_DummyClients[i]->WaitLoginThreadResponse();
+			//m_DummyClients[i]->SendChangePidPacket();
 			continue;
 		}
 
@@ -78,25 +78,37 @@ void CDummy::Update()
 
 void CDummy::StartDummyClients()
 {
-	// 테스트 하는 클라 개수 = Zone 당 클라이언트 * 최대 Zone 개수
-	m_nMaxConnectClient = MAX_CONNECT_CLIENT * MAX_ZONE_NUMBER;
+	// 테스트 하는 클라 개수 = Zone 당 클라이언트 * 최대 Zone 개수 * 테스트 Channel 2
+	m_nMaxConnectClient = MAX_CONNECT_CLIENT * MAX_ZONE_NUMBER * 2;
 
 	int ClinetID = 0;
+
+	int half = MAX_CONNECT_CLIENT / 2;
+
 	for (int i = 1; i <= MAX_ZONE_NUMBER; i++)
 	{
 		for (int j = 0; j < MAX_CONNECT_CLIENT; j++)
 		{
-			CClient* pClient = new CClient(ClinetID++, i, j);
-			int ret = pClient->Connect("127.0.0.1", 7799, (HANDLE)GetCICPPort());
-			if (ret != 0)
+			for (int z = 0; z < 2; z++)
 			{
-				delete pClient;
-				pClient = nullptr;
-			}
-			m_DummyClients.push_back(pClient);
+				CClient* pClient = new CClient(ClinetID++, i, j);
+				int ret = pClient->Connect("127.0.0.1", 7799, (HANDLE)GetCICPPort());
+				if (ret != 0)
+				{
+					delete pClient;
+					pClient = nullptr;
+					g_LogDummy.ELog("ERROR Create Client");
+					exit(1);
+				}
 
-			if(pClient != nullptr)
-				pClient->SendChangePidPacket();
+				pClient->SetChannel(z);
+				pClient->SetChangeZoneVar();
+				m_DummyClients.push_back(pClient);
+
+				pClient->WaitLoginThreadResponse();
+
+				pClient->SendChangePidPacket(pClient->GetChannel(), pClient->GetZoneID());
+			}
 		}
 	}
 }
@@ -113,6 +125,7 @@ bool CDummy::RegisterServerIDtoClientID(int sID, int cID)
 		return false;
 
 	m_DummyClientID[sID] = cID;
+	return true;
 }
 
 int CDummy::IsExistZoneClient(int zone, int sID)

@@ -11,7 +11,6 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_LoopBack data;
 	pReqPacket >> data;
 
-	int zone = data.zone;
 	__int64 b = data.data;
 	
 	if (b != pTarget->GetLoopbackData())
@@ -19,24 +18,18 @@ int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 		g_LogDummy.ELog("LoopBack Data Error : %lld != %lld", b, pTarget->GetLoopbackData());
 		return -1;
 	}
-	
-	if (zone != pTarget->GetZoneID() && zone != 0)
-	{
-		g_LogDummy.ELog("Not Equal Zone Clinet[%d] - Server[%d]", pTarget->GetZoneID(), zone);
-	}
 
 #if __DUMMY_DISCONNECT__
 	pTarget->IncrementDisConnectRandomCount();
 #endif // __DUMMY_DISCONNECT__
 
 #if __DUMMY_CHANGE_ZONE__
-	pTarget->ChangeZoneIDRequest();
+
 #endif //__DUMMY_CHANGE_ZONE__
 
 	st_CTS_LoopBack res;
 	res.data = pTarget->IncrementLoopbackData();
-	res.zone = pTarget->GetZoneID();
-
+	
 	CPacket pRes;
 	pRes << res;
 
@@ -58,27 +51,48 @@ int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 {
 	st_STC_ChangeZone res;
 	pReqPacket >> res;
+	
+	if (res.ret == ERROR_CODE::EQUAL_PID)
+	{
+		st_CTS_EnterZone req;
+		req.channel = pTarget->GetChannel();
+		req.zone = pTarget->GetZoneID();
 
-	res.ret;
-	if (res.ret != ERROR_CODE::NOT_ERROR && res.ret != ERROR_CODE::EQUAL_PID)
+		CPacket packet;
+		packet << req;
+		pTarget->SendPacket(&packet);
+
+		return 0;
+	}
+
+	if (res.ret != ERROR_CODE::NOT_ERROR)
 	{
 		g_LogDummy.ELog("Error Change Pid ret : %d %d", res.ret, res.zone);
 		pTarget->ReStoreZoneID();
 		pTarget->CompletedWaitServerResponse();
 		return 0;
 	}
-
+	
 	pTarget->CompletedWaitServerResponse();
 
+	if (res.zone == 0)
 	{
-		st_CTS_EnterZone res;
-		res.zone = pTarget->GetZoneID();
-
-		CPacket pack;
-		pack << res;
-		pTarget->SendEnqueuePacket(&pack);
+		// Game 서버에서 Login Thread 에 입성
+		pTarget->SetLogin();
 	}
+	else
+	{
+		pTarget->SetChannel(res.channel);
+		pTarget->SetZoneID(res.zone);
 
+		st_CTS_EnterZone req;
+		req.channel = res.channel;
+		req.zone = res.zone;
+
+		CPacket packet;
+		packet << req;
+		pTarget->SendPacket(&packet);
+	}
 	return 0;
 }
 
@@ -123,21 +137,16 @@ int CPacketProc::DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket)
 		g_LogDummy.ELog("ERROR DO_GAME_ENTERZONE");
 		return 0;
 	}
-	
+
 	int count = res.Loop1;
 	int ret = 0;
 	for (int i = 0; i < count; i++)
 	{
 		ret = g_DummyManager.IsExistZoneClient(pTarget->GetZoneID(), res.info[i].ID);
-		if (ret == 0)
-		{
-			// Zone 입장이 성공 했으면 테스트 시작
-			pTarget->DummyTestPacketSend();
-			continue;
-		}
-
 		switch (ret)
 		{
+		case 0:
+			break;
 		case 1:
 			g_LogDummy.ELog("ENTERZONE ERROR RET NOT_EXIST_CLIENT");
 			break;
@@ -148,11 +157,11 @@ int CPacketProc::DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket)
 			g_LogDummy.ELog("ENTERZONE ERROR");
 			break;
 		}
-
-		res.info[i].type;
-		res.info[i].ID;
-		res.info[i].pos;
 	}
+
+	// Zone 에 들어갈시 Test 시작
+	pTarget->DummyTestPacketSend();
+
 	return 0;
 }
 
@@ -205,6 +214,23 @@ int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 		g_LogDummy.ELog("MOVE COMPLETE ERROR NOT EQUAL ID [%d] != [%d]", res.ID, pTarget->GetServerClientID());
 		break;
 	}
+	return 0;
+}
+
+int CPacketProc::DO_OBSERVER_CONNET_OBSERVER(CClient* pTarget, CPacket& pReqPacket)
+{
+	return 0;
+}
+
+int CPacketProc::DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket)
+{
+	st_STC_ChangeingZone data;
+	pReqPacket >> data;
+
+	data.ret;
+	data.type;
+
+	g_LogDummy.ELog("ERROR ChagneingZone SendPacket  type : %d", data.type);
 	return 0;
 }
 

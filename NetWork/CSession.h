@@ -6,13 +6,22 @@
 #include "../CUtill/CPacket.h"
 #include <queue>
 #include <atomic>
+#include <vector>
 
+struct st_DebugHeader
+{
+	int type;
+	int size;
+};
 class CSession
 {
 public:
 	CSession();
 	~CSession();
 
+	std::vector<st_DebugHeader> m_vecDebugHeader;
+	std::vector<void*> m_vecDebugPointer;
+	std::vector<char*> m_vecDebugPacket;
 private:
 	SOCKET sock;
 

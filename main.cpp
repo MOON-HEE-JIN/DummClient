@@ -12,6 +12,8 @@ void main()
 	StartThread();
 
 	g_DummyManager.StartDummyClients();
+	printf("== Delay Connect ===");
+	Sleep(5 * 1000);
 	printf("=== Send Start ===\n");
 	while (true)
 	{
