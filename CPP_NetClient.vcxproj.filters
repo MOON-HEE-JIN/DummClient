@@ -31,6 +31,12 @@
     <Filter Include="소스 파일\CDummy">
       <UniqueIdentifier>{cd45fc6c-b3c1-4490-a986-b1c79af1b22d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Scheduling">
+      <UniqueIdentifier>{86bb09e9-5d6d-4326-8bcf-ddc1fb52082b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\TestSchedule">
+      <UniqueIdentifier>{4f3be38e-6b89-4cd3-b84e-23b68efa582b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NetWork\CNetWork.h">
@@ -93,6 +99,15 @@
     <ClInclude Include="CUtill\CRingBuffer.h">
       <Filter>소스 파일\CUtill</Filter>
     </ClInclude>
+    <ClInclude Include="Scheduling\CSchedule.h">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduling\ScheduleDefines.h">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_Connect.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -133,6 +148,12 @@
     </ClCompile>
     <ClCompile Include="CUtill\CRingBuffer.cpp">
       <Filter>소스 파일\CUtill</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduling\ScheduleDefines.cpp">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduling\CSchedule.cpp">
+      <Filter>소스 파일\Scheduling</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

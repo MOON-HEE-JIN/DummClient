@@ -1,4 +1,4 @@
-#include "CPacket.h"
+ï»¿#include "CPacket.h"
 #include <malloc.h>
 #include <memory.h>
 #include <stdio.h>
@@ -79,84 +79,97 @@ int CPacket::PutData(void* Src, int size)
 	return size;
 }
 
-//CPacket& CPacket::operator=(CPacket& clSrcPacket)
-//{
-//	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
-//}
+CPacket& CPacket::operator=(const CPacket& clSrcPacket)
+{
+	if (&clSrcPacket == this)
+		return *this;
+
+	m_iBufferSize = clSrcPacket.m_iBufferSize;
+	buffer = (char*)malloc(clSrcPacket.m_iBufferSize);
+
+	memcpy(buffer, clSrcPacket.buffer, clSrcPacket.m_iBufferSize);
+
+	WritePointer = buffer + (clSrcPacket.WritePointer - clSrcPacket.buffer);
+	ReadPointer = buffer + (clSrcPacket.ReadPointer - clSrcPacket.buffer);
+	EndPointer = buffer + m_iBufferSize;
+
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
+	return *this;
+}
 
 CPacket& CPacket::operator<<(unsigned char value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(unsigned char));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(char value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(char));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(unsigned short value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(unsigned short));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(short value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(short));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(unsigned int value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(unsigned int));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(int value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(int));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(long value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(long));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(float value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(float));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(double value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(double));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(__int64 value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(__int64));
 	return *this;
 }
 
 CPacket& CPacket::operator<<(bool value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = PutData((char*)&value, sizeof(bool));
 	return *this;
 }
@@ -165,77 +178,77 @@ CPacket& CPacket::operator<<(bool value)
 
 CPacket& CPacket::operator>>(unsigned char& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(unsigned char));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(char& value)
 {
-	//TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	//TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(char));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(unsigned short& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(short));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(short& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(short));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(unsigned int& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(unsigned int));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(int& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(int));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(long& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(long));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(float& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(float));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(double& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(double));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(__int64& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(__int64));
 	return *this;
 }
 
 CPacket& CPacket::operator>>(bool& value)
 {
-	// TODO: ¿©±â¿¡ return ¹®À» »ğÀÔÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— return ë¬¸ì„ ì‚½ì…í•©ë‹ˆë‹¤.
 	int size = GetData((char*)&value, sizeof(bool));
 	return *this;
 }

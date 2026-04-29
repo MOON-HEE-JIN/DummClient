@@ -39,6 +39,11 @@ int CPacketProc::DO_GAME_LEAVEZONE(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 {
+	st_STC_ConnectInfo res;
+	pReqPacket >> res;
+
+	pTarget->ConnectServerLoginThread(res.info.ID);
+
 	return 0;
 }
 

@@ -141,12 +141,15 @@
     <ClInclude Include="MemoryManager\MemoryManager.h" />
     <ClInclude Include="NetWork\CNetWork.h" />
     <ClInclude Include="NetWork\CSession.h" />
+    <ClInclude Include="Scheduling\CSchedule.h" />
+    <ClInclude Include="Scheduling\ScheduleDefines.h" />
     <ClInclude Include="Stub\CLIENT_STUB.h" />
     <ClInclude Include="Stub\EnumDef.h" />
     <ClInclude Include="Stub\PacketEnumDef.h" />
     <ClInclude Include="Stub\ProjectDefineStruct.h" />
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
+    <ClInclude Include="Test\TSchedule_Connect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CClient.cpp">
@@ -162,6 +165,8 @@
     <ClCompile Include="MemoryManager\MemoryManager.cpp" />
     <ClCompile Include="NetWork\CNetWork.cpp" />
     <ClCompile Include="NetWork\CSession.cpp" />
+    <ClCompile Include="Scheduling\CSchedule.cpp" />
+    <ClCompile Include="Scheduling\ScheduleDefines.cpp" />
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
   </ItemGroup>
