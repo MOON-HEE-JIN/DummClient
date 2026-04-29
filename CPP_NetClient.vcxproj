@@ -156,6 +156,10 @@
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
+    <ClInclude Include="Zone\CBinVoxel.h" />
+    <ClInclude Include="Zone\CBinZone.h" />
+    <ClInclude Include="Zone\CBinZoneIdx.h" />
+    <ClInclude Include="Zone\ZoneDefines.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CClient.cpp">
@@ -179,6 +183,9 @@
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
+    <ClCompile Include="Zone\CBinVoxel.cpp" />
+    <ClCompile Include="Zone\CBinZone.cpp" />
+    <ClCompile Include="Zone\CBinZoneIdx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

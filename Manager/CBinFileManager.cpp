@@ -170,12 +170,12 @@ bool CBinFileManager::ReadBinVoxelFile(const char* filepath)
 	pGrid->m_iZoneID = bin.m_Zone.ZoneId;
 	pGrid->m_fVoxelSize = bin.m_Grid.VoxelSize;
 	
-	pGrid->m_stOrigin(bin.m_Grid.GridOriginX, bin.m_Grid.GridOriginY, bin.m_Grid.GridOriginZ);
+	//pGrid->m_stOrigin(bin.m_Grid.GridOriginX, bin.m_Grid.GridOriginY, bin.m_Grid.GridOriginZ);
 	
-	pGrid->m_stExtent[0](bin.m_Zone.BoundsExtentMinX, bin.m_Zone.BoundsExtentMinY, bin.m_Zone.BoundsExtentMinZ);
-	pGrid->m_stExtent[1](bin.m_Zone.BoundsExtentMaxX, bin.m_Zone.BoundsExtentMaxY, bin.m_Zone.BoundsExtentMaxZ);
+	//pGrid->m_stExtent[0](bin.m_Zone.BoundsExtentMinX, bin.m_Zone.BoundsExtentMinY, bin.m_Zone.BoundsExtentMinZ);
+	//pGrid->m_stExtent[1](bin.m_Zone.BoundsExtentMaxX, bin.m_Zone.BoundsExtentMaxY, bin.m_Zone.BoundsExtentMaxZ);
 	
-	pGrid->m_stGridSize(bin.m_Grid.GridSizeX, bin.m_Grid.GridSizeY, bin.m_Grid.GridSizeZ);
+	//pGrid->m_stGridSize(bin.m_Grid.GridSizeX, bin.m_Grid.GridSizeY, bin.m_Grid.GridSizeZ);
 	
 	//pGrid->PushBitData(eBitType::OCCUPANCY, bin.m_vecOccupancyData);
 	//pGrid->PushBitData(eBitType::WALKABLE, bin.m_vecWalkableData);

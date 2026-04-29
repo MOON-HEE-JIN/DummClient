@@ -154,26 +154,3 @@ void CClient::Update()
 
 	CheckSchedule();
 }
-
-void CClient::MoveStop(st_Vector3F comparevector)
-{
-	double moveTime = CUtil::GetQPCNowTime() - m_dMoveStartTime;
-
-	int nLoop = (int)(moveTime / FIXED_DELTA);
-
-	m_stPosition += m_stDirection * (m_fSpeed * nLoop) * FIXED_DELTA;
-
-	//st_Vector3F diff = m_stGoalPosition - m_stPosition;
-	st_Vector3F compDiff = comparevector - m_stPosition;
-
-	if (compDiff.Length() > 5)
-		g_LogDummy.ELog("Move Complete Error : Compare Diff [%f]", compDiff.Length());
-	else
-		g_LogDummy.ELog("=== Move Complete : SUCESS [%d] ===", m_nClientID);
-
-	m_stPosition = m_stGoalPosition;
-
-
-	// Move Complete 응답이 왔으니 바로 Move Start 요청
-	SendMovestartPacket();
-}

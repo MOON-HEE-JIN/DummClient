@@ -11,7 +11,7 @@ private:
 
 	st_Vector3F m_stOrigin;
 	st_Vector3F m_stExtent[2];
-	st_Vector3D m_stGridSize;
+	//st_Vector3D m_stGridSize;
 
 	std::unordered_map<BlockCoord, BlockData, BlockCoordHasher> Blocks;
 public:
