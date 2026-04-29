@@ -23,7 +23,22 @@ int CPacketProc::DO_ERROR_RESULT(CClient* pTarget, int ret, int type)
 
 int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 {
-	
+	st_STC_ChangeZone res;
+	pReqPacket >> res;
+
+	if (res.ret != 0)
+	{
+		g_LogDummy.ELog("ERROR Change Zone Result ret : %d", res.ret);
+		return 0;
+	}
+
+	if(res.zone == 0)
+	{
+		return 0;
+	}
+
+	pTarget->SetChangeZone(res.channel, res.zone);
+
 	return 0;
 }
 
@@ -43,7 +58,7 @@ int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 	pReqPacket >> res;
 
 	pTarget->ConnectServerLoginThread(res.info.ID);
-
+	
 	return 0;
 }
 
@@ -69,6 +84,11 @@ int CPacketProc::DO_OBSERVER_CONNET_OBSERVER(CClient* pTarget, CPacket& pReqPack
 
 int CPacketProc::DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket)
 {
+	st_STC_ChangeingZone res;
+	pReqPacket >> res;
+
+	int ret = res.ret;
+	int type = res.type;
 	return 0;
 }
 

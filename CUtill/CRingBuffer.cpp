@@ -22,14 +22,14 @@ int CRingBuffer::GetDirectEnqueueSize()
 	if (m_iUseSize.load() == DEFAULT_BUFFER_SIZE)
 		return 0;
 
-	int iDirectEnqueueSize = 0;
-	
+	__int64 iDirectEnqueueSize = 0;
+
 	if (m_pReadPointer > m_pWritePointer)
 		iDirectEnqueueSize = m_pReadPointer - m_pWritePointer;
 	else
 		iDirectEnqueueSize = m_pEndPointer - m_pWritePointer;
 
-	return iDirectEnqueueSize;
+	return static_cast<int>(iDirectEnqueueSize);
 }
 
 int CRingBuffer::GetDirectDequeueSize()
@@ -37,14 +37,34 @@ int CRingBuffer::GetDirectDequeueSize()
 	if (m_iFreeSize.load() == 0)
 		return 0;
 
-	int iDirectDequeueSize = 0;
+	__int64 iDirectDequeueSize = 0;
 
 	if (m_pWritePointer > m_pReadPointer)
 		iDirectDequeueSize = m_pWritePointer - m_pReadPointer;
 	else
 		iDirectDequeueSize = m_pEndPointer - m_pReadPointer;
 
-	return iDirectDequeueSize;
+	return static_cast<int>(iDirectDequeueSize);
+}
+
+void CRingBuffer::PrivateMoveReadPointer(int size)
+{
+	m_pReadPointer += size;
+	if (m_pReadPointer >= m_pEndPointer)
+	{
+		int iOverPointer = m_pReadPointer - m_pEndPointer;
+		m_pReadPointer = m_pBuffer + iOverPointer;
+	}
+}
+
+void CRingBuffer::PrivateMoveWritePointer(int size)
+{
+	m_pWritePointer += size;
+	if (m_pWritePointer >= m_pEndPointer)
+	{
+		int iOverPointer = m_pWritePointer - m_pEndPointer;
+		m_pWritePointer = m_pBuffer + iOverPointer;
+	}
 }
 
 void CRingBuffer::MoveReadPointer(int size)
@@ -55,6 +75,8 @@ void CRingBuffer::MoveReadPointer(int size)
 		int iOverPointer = m_pReadPointer - m_pEndPointer;
 		m_pReadPointer = m_pBuffer + iOverPointer;
 	}
+	m_iUseSize.fetch_sub(size);
+	m_iFreeSize.fetch_add(size);
 }
 
 void CRingBuffer::MoveWritePointer(int size)
@@ -65,6 +87,8 @@ void CRingBuffer::MoveWritePointer(int size)
 		int iOverPointer = m_pWritePointer - m_pEndPointer;
 		m_pWritePointer = m_pBuffer + iOverPointer;
 	}
+	m_iUseSize.fetch_add(size);
+	m_iFreeSize.fetch_sub(size);
 }
 
 int CRingBuffer::Peek(char* buf, int size)
@@ -95,17 +119,17 @@ int CRingBuffer::Enqueue(const char* buf, int size)
 	if (GetDirectEnqueueSize() >= size)
 	{
 		memcpy(m_pWritePointer, buf, size);
-		MoveWritePointer(size);
+		PrivateMoveWritePointer(size);
 	}
 	else
 	{
 		int iFirstEnqueueSize = GetDirectEnqueueSize();
 		memcpy(m_pWritePointer, buf, iFirstEnqueueSize);
-		MoveWritePointer(iFirstEnqueueSize);
+		PrivateMoveWritePointer(iFirstEnqueueSize);
 
 		int iSecondEnqueueSize = size - iFirstEnqueueSize;
 		memcpy(m_pWritePointer, buf + iFirstEnqueueSize, iSecondEnqueueSize);
-		MoveWritePointer(iSecondEnqueueSize);
+		PrivateMoveWritePointer(iSecondEnqueueSize);
 	}
 
 	m_iUseSize.fetch_add(size);
@@ -121,17 +145,17 @@ int CRingBuffer::Dequeue(char* buf, int size)
 	if (GetDirectDequeueSize() >= size)
 	{
 		memcpy(buf, m_pReadPointer, size);
-		MoveReadPointer(size);
+		PrivateMoveReadPointer(size);
 	}
 	else
 	{
 		int iFirstDequeueSize = GetDirectDequeueSize();
 		memcpy(buf, m_pReadPointer, iFirstDequeueSize);
-		MoveReadPointer(iFirstDequeueSize);
+		PrivateMoveReadPointer(iFirstDequeueSize);
 
 		int iSecondDequeueSize = size - iFirstDequeueSize;
 		memcpy(buf + iFirstDequeueSize, m_pReadPointer, iSecondDequeueSize);
-		MoveReadPointer(iSecondDequeueSize);
+		PrivateMoveReadPointer(iSecondDequeueSize);
 	}
 
 	m_iUseSize.fetch_sub(size);

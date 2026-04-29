@@ -149,7 +149,7 @@
     <ClInclude Include="Stub\ProjectDefineStruct.h" />
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
-    <ClInclude Include="Test\TSchedule_Connect.h" />
+    <ClInclude Include="Test\TSchedule_Change_Zone.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CClient.cpp">
@@ -169,6 +169,7 @@
     <ClCompile Include="Scheduling\ScheduleDefines.cpp" />
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
+    <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,6 +5,8 @@
 
 #include <process.h>
 
+#include "../Test/TSchedule_Change_Zone.h"
+
 CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount)
 {
 	m_iID = id;
@@ -15,6 +17,8 @@ CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount)
 	m_bRun = false;
 	m_hThread = 0;
 	m_hExitEvent = 0;
+
+	m_pSchedule = nullptr;
 }
 
 CDummy::~CDummy()
@@ -47,6 +51,7 @@ void CDummy::CreateDummyClient()
 			g_LogDummy.ELog("ERROR Create Client");
 			exit(1);
 		}
+		pClient->Init(m_iDummyChannel, m_iDummyZone, m_pSchedule);
 		m_DummyClients.push_back(pClient);
 	}
 }
@@ -86,6 +91,13 @@ int CDummy::Run()
 		Update();
 	}
 	return 0;
+}
+
+void CDummy::Init(int channel, int zone, CSchedule* pSchedule)
+{
+	m_iDummyChannel = channel;
+	m_iDummyZone = zone;
+	m_pSchedule = pSchedule;
 }
 
 void CDummy::Start()

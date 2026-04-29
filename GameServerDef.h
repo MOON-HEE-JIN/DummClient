@@ -20,10 +20,16 @@ typedef struct st_Job
 	int type;
 	CPacket cPacket;
 
-	st_Job() : type(0), cPacket() {};
-	st_Job(int _type, const CPacket& _cPacket)
-		: type(_type), cPacket(_cPacket) {
-	};
-	st_Job& operator=(const st_Job&) = default;
+	st_Job() : type(0) {};
+	st_Job(int _type, CPacket& _packet) :type(_type), cPacket(_packet) {};
+	st_Job& operator=(st_Job&& job) noexcept
+	{
+		if (this != &job)
+		{
+			type = job.type;
+			cPacket = job.cPacket;
+		}
+		return *this;
+	}
 
 }RECV_JOB;

@@ -6,6 +6,7 @@ class CPacket
 public:
 	CPacket();
 	CPacket(int size);
+	CPacket(const CPacket& other);
 	virtual ~CPacket();
 
 	void Release();//패킷 파괴
@@ -84,4 +85,3 @@ inline CPacket& CPacket::operator>>(T& value)
 	MoveReadPos(len);
 	return *this;
 }
-

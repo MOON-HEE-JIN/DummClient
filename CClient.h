@@ -26,6 +26,9 @@ private:
 	int m_iManagementDummyID;		// 관리하는 CDummy ID
 	int m_iID;
 	int m_iServerID;
+	
+	int m_iSendDelay;				// 패킷 전송 지연 시간 (ms)
+	int m_iSendTime;					// 패킷 전송 시간 (ms)
 
 	bool m_bLogin;
 	
@@ -37,16 +40,24 @@ private:
 	CLockFreeQueue_MPSC<RECV_JOB> m_PacketPool;
 
 	CSchedule* m_pSchedule;				// 현재 스케줄
+	int m_iWorkScheduleLoop;
 	int m_iWorkScheduleRogress;			// 현재 작업 스케줄 진행도
 	st_Schedule* m_pWorkSchedule;		// 현재 작업 스케줄
-private:
+
+public:
+	void Init(int channel, int zone, CSchedule* pSchedule);
 	void SetSchedule(CSchedule* pSchedule);
-	void SetWorkSchedule(st_Schedule* pSchedule) { m_pWorkSchedule = pSchedule; }
+
+private:
+	void SetWorkSchedule(st_Schedule* pSchedule);
 	void CheckSchedule();
+	void SetFirstSchedule();
 	void NextSchedule();
 	
 	void Clear();
 public:
+	void SetChangeZone(int channel, int zoneID) { m_iZoneID = zoneID; m_iChannel = channel; }
+
 	bool GetLogin() { return m_bLogin; }
 	int GetDeafultZoneID() { return m_iDefaultZoneID; }
 	int GetDefaultChannel() { return m_iDefaultChannel; }
@@ -54,7 +65,7 @@ public:
 	int GetChannel() { return m_iChannel; }
 
 public:
-	void ConnectServerLoginThread(int id) { m_iServerID = id;};	// 서버 로그인 thread 접속 완
+	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완
 
 	void Update();
 };

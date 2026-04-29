@@ -30,6 +30,10 @@ public:
 	const void* GetBuffer() { return m_pBuffer; }
 	const void* GetEndPointer() { return m_pEndPointer; }
 
+private:
+	void PrivateMoveReadPointer(int size);
+	void PrivateMoveWritePointer(int size);
+
 public:
 	void MoveReadPointer(int size);
 	void MoveWritePointer(int size);
