@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 #include <string>
-
+#include "CUtill/CPacket.h"
 #define ProcThreadCnt 3
 
 typedef struct st_Log
@@ -13,3 +13,23 @@ typedef struct st_Log
 		: filePath(_filePath), log(_log) {
 	};
 }LOG_JOB;
+
+
+typedef struct st_Job
+{
+	int type;
+	CPacket cPacket;
+
+	st_Job() : type(0) {};
+	st_Job(int _type, CPacket& _packet) :type(_type), cPacket(_packet) {};
+	st_Job& operator=(st_Job&& job) noexcept
+	{
+		if (this != &job)
+		{
+			type = job.type;
+			cPacket = job.cPacket;
+		}
+		return *this;
+	}
+
+}RECV_JOB;

@@ -21,15 +21,14 @@ int CUtil::Random(int Min, int Max)
 	return dist(gen);
 }
 
-
-st_Vector3F CUtil::RandomVector2F(int Min, int Max)
+st_Vector3F CUtil::RandomVector2F(float Min, float Max)
 {
-	return st_Vector3F((float)Random(Min,Max), 0, (float)Random(Min, Max));
+	return st_Vector3F(Random(Min,Max), 0, Random(Min, Max));
 }
 
-st_Vector3F CUtil::RandomVector3F(int Min, int Max)
+st_Vector3F CUtil::RandomVector3F(float Min, float Max)
 {
-	return st_Vector3F((float)Random(Min, Max), (float)Random(Min, Max), (float)Random(Min, Max));
+	return st_Vector3F(Random(Min, Max), Random(Min, Max), Random(Min, Max));
 }
 
 double CUtil::GetQPCNowTime()

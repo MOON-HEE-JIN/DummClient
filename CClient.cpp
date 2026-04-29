@@ -6,157 +6,153 @@
 #include "Log/CLog.h"
 static CPacketProc g_cPacketProc;
 
-CClient::CClient(int ClientID, int testZone, int inZoneClientID)
+CClient::CClient(int Dummyid, int id)
 {
-	m_nClientID = ClientID;
-	m_nZoneID = testZone;
-	m_nInZoneClientID = inZoneClientID;
+	m_iManagementDummyID = Dummyid;
+	m_iID = id;
 
-	m_LoopbackData = static_cast<__int64>(CUtil::Random(1000, 9999));
-	m_nLastSendReqTime = GetTickCount();
+	m_iServerID = 0;
+	m_bLogin = false;
+	m_iDefaultZoneID = 0;
+	m_iDefaultChannel = 0;
+	m_iZoneID = 0;
+	m_iChannel = 0;
 
-	m_nLoopbackSendCount = 0;
-	m_nDisConnectRandomCount = CUtil::Random(2000, 5000); // 2000~5000
+	m_pSchedule = nullptr;
+	m_iWorkScheduleLoop = 0;
+	m_iWorkScheduleRogress = 0;
+	m_pWorkSchedule = nullptr;
 
-	m_nChangeZoneIDCount = 0;
-	m_nChangeZoneIDRequestCount = CUtil::Random(20, 800);
-
-	m_nSendReqDelayTime = CUtil::Random(1, 5) * 100;	// 100~500 ms
+	m_iSendDelay = 3 * 1000; // 3초
+	m_iSendTime = 0;
 }
 
 void CClient::OnRecv(int type, CPacket& cPacket)
 {
-	//printf("CClient::OnRecv Type : %d \n", type);
-	g_cPacketProc.DO_GAME_Proc(type, this, cPacket);
+	m_PacketPool.Enqueue({ type, cPacket });
 }
 
-void CClient::DummyTestPacketSend()
+void CClient::Init(int channel, int zone, CSchedule* pSchedule)
 {
-#if __DUMMY_LOOPBACK__
-	SendLoopbackPacket();
-#endif // __DUMMY_LOOPBACK__
-	SendMovestartPacket();
+	m_iDefaultChannel = channel;
+	m_iDefaultZoneID = zone;
+	SetSchedule(pSchedule);
 }
 
-void CClient::SendChangePidPacket()
+void CClient::SetSchedule(CSchedule* pSchedule)
 {
-	if (m_bWaitServerResponse.load())
+	m_pSchedule = pSchedule;
+	m_iWorkScheduleRogress = 0;
+
+	if (m_pWorkSchedule != nullptr)
+		delete m_pWorkSchedule;
+
+	SetFirstSchedule();
+}
+
+void CClient::SetWorkSchedule(st_Schedule* pSchedule)
+{
+	if (pSchedule == nullptr)
+	{
+		m_pWorkSchedule = nullptr;
 		return;
-	m_bWaitServerResponse.store(true); // 응답 대기 전환
-	st_CTS_ChangeZone data;
-	data.zone = m_nZoneID;
-	
-	CPacket Req;
-	Req << data;
-
-	int len = SendPacket(&Req);
-	if (len > sizeof(st_CTS_ChangeZone) + sizeof(st_Header))
-	{
-		int a = 100;
-		a++;
 	}
+
+	m_pWorkSchedule = pSchedule;
+	m_pWorkSchedule->DoInitRunSchedule(this);
 }
 
-void CClient::SendLoopbackPacket()
+void CClient::CheckSchedule()
 {
-	st_CTS_LoopBack data;
-	data.data = m_LoopbackData;
-	data.zone = GetZoneID();
-	CPacket pRes;
-	pRes << data;
-	
-	SendEnqueuePacket(&pRes);
+	if (m_pWorkSchedule == nullptr)
+		return;
+
+	if (!m_pWorkSchedule->DoSchedule(this))
+		return;
+
+	NextSchedule();
 }
 
-void CClient::SendMovestartPacket()
+void CClient::SetFirstSchedule()
 {
-	m_stGoalPosition = m_stPosition + CUtil::RandomVector3F(-300, 300);
-	m_stDirection = m_stPosition.Direction(m_stGoalPosition);
+	if (m_pSchedule == nullptr)
+		return;
 
-	st_CTS_MoveStart req;
-	req.pos = m_stPosition;
-	req.goal = m_stGoalPosition;
-	req.dir = m_stDirection;
+	st_Schedule* pPrevSchedule = m_pWorkSchedule;
 
-	CPacket pReq;
-	pReq << req;
-
-	m_dMoveStartTime = CUtil::GetQPCNowTime();
-	SendEnqueuePacket(&pReq);
-}
-
-void CClient::SendMoveStopPacket()
-{
-	st_CTS_MoveStop req;
-	req.pos = m_stPosition;
-
-	CPacket pReq;
-	pReq << req;
-
-	SendEnqueuePacket(&pReq);
-}
-
-void CClient::CreateCharInfo(st_Vector3F pos, float speed)
-{
-	m_stPosition = pos;
-	m_fSpeed = speed;
-}
-
-void CClient::SetServerClientID(int value)
-{
-	m_nServerClientID = value;
-	g_DummyManager.RegisterServerIDtoClientID(value, m_nClientID);
-}
-
-void CClient::ReConnect(const char IP[16], unsigned short Port, HANDLE cicp)
-{
-	Connect(IP, Port, cicp);
-}
-
-bool CClient::IncrementDisConnectRandomCount()
-{
-	if (++m_nLoopbackSendCount > m_nDisConnectRandomCount)
+	switch (m_pSchedule->GetSchedule(0))
 	{
-		DisConnect();
-		g_DummyManager.DisconnectClient(m_nClientID);
-		return true;
+	case SCHEDULE_TYPE_LOGIN:
+		SetWorkSchedule(new st_Schedule_Login());
+		break;
+	default:
+		g_LogDummy.ELog("ERROR Invalid Schedule Type : %d", m_pSchedule->GetSchedule(0));
+		break;
 	}
-	return false;
+
+	if (pPrevSchedule != nullptr)
+		delete pPrevSchedule;
 }
 
-void CClient::ChangeZoneIDRequest()
+void CClient::NextSchedule()
 {
-	static std::atomic<bool> onLog = false;
-	bool t = false;
-	if (++m_nChangeZoneIDCount > m_nChangeZoneIDRequestCount)
+	if (m_pSchedule == nullptr)
+		return;
+
+	m_iWorkScheduleRogress++;
+
+	if (m_iWorkScheduleRogress >= m_pSchedule->GetSize())
 	{
-		m_nPreZoneID = m_nZoneID;
-		m_nZoneID = CUtil::Random(1, MAX_ZONE_NUMBER);
-		m_nChangeZoneIDCount = 0;
-		SendChangePidPacket();
-		if (onLog.compare_exchange_strong(t, true))
-		{
-			g_LogDummy.ILog("====Start Change Zone ID====");
-		}
+		m_iWorkScheduleLoop++;
+		m_iWorkScheduleRogress = m_pSchedule->GetLogicScheduleIndex();
 	}
+
+	st_Schedule* pPrevSchedule = m_pWorkSchedule;
+
+	switch (m_pSchedule->GetSchedule(m_iWorkScheduleRogress))
+	{
+	case SCHEDULE_TYPE_LOGIN:
+		SetWorkSchedule(new st_Schedule_Login());
+		break;
+	case SCHEDULE_TYPE_LOGIN_CHANGE_ZONE:
+		SetWorkSchedule(new st_Schedule_LoginChangeZone());
+		break;
+	case SCHEDULE_TYPE_CHANGE_ZONE:
+		SetWorkSchedule(new st_Schedule_ChangeZone());
+		break;
+	case SCHEDULE_TYPE_RETURN_ZONE:
+		SetWorkSchedule(new st_Schedule_ReturnZone());
+		break;
+	default:
+		SetWorkSchedule(nullptr);
+		break;
+	}
+
+
+	delete pPrevSchedule;
 }
 
-bool CClient::IsSend()
+void CClient::Clear()
 {
-	if (m_bWaitServerResponse)
-		return false;
+	m_iServerID = 0;
+	m_bLogin = false;
+}
 
-	if (m_bWaitServerResponse)
+void CClient::Update()
+{
+	RECV_JOB job;
+	while (m_PacketPool.TryDequeue(job))
 	{
-		int a = 100;
-		a++;
+		g_cPacketProc.DO_GAME_Proc(job.type, this, job.cPacket);
 	}
-	if (m_nSendReqDelayTime + m_nLastSendReqTime < GetTickCount())
+
+	if (m_iSendTime + m_iSendDelay < GetTickCount())
 	{
-		m_nLastSendReqTime = GetTickCount();
-		return true;
+		SendPost();
+		m_iSendTime = GetTickCount();
 	}
-	return false;
+
+	CheckSchedule();
 }
 
 void CClient::MoveStop(st_Vector3F comparevector)

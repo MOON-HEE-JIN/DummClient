@@ -83,7 +83,7 @@ unsigned __stdcall WorkerThread(void* arg)
 				st_Header header;
 
 				int size;
-
+				int debugindex = 0;
 				while (1)
 				{
 					size = pSession->GetRecvBuffer()->GetUseSize();
@@ -91,6 +91,7 @@ unsigned __stdcall WorkerThread(void* arg)
 					//고정된 크기의 Header 크기 확인
 					if (size < sizeof(st_Header))
 						break;
+					debugindex++;
 
 					pSession->GetRecvBuffer()->Peek((char*)&header, sizeof(st_Header));
 
@@ -99,12 +100,14 @@ unsigned __stdcall WorkerThread(void* arg)
 
 					pSession->GetRecvBuffer()->MoveReadPointer(sizeof(st_Header));
 					CPacket cPacket;
-
+					
 					pSession->GetRecvBuffer()->Dequeue(cPacket.GetWriteBuffPtr(), header.size);
 					cPacket.MoveWritePos(header.size);
 
 					pSession->LockSession();
+					// 지금은 Clinet 직접 -> 로 실행 추후 에 Job 형태로 수정
 					pSession->OnRecv(header.type, cPacket);
+					
 					pSession->UnLockSession();
 				}
 
@@ -140,7 +143,7 @@ unsigned __stdcall WorkerThread(void* arg)
 			}
 			else
 			{
-				//pSession->SendPost();
+				pSession->SendPost();
 			}
 			pSession->DecrementIOCnt();
 		}
