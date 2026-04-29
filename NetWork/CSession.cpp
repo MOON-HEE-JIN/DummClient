@@ -7,8 +7,8 @@ CSession::CSession()
 	CICP = 0;
 	sock = 0;
 
-	RecvQ = new RingQueue;
-	SendQ = new RingQueue;
+	RecvQ = new CRingBuffer;
+	SendQ = new CRingBuffer;
 
 	RecvOverlap = { 0 };
 	SendOverlap = { 0 };
@@ -166,9 +166,9 @@ int CSession::SendPost()
 	if (SendQ->GetDirectDequeueSize() < SendQ->GetUseSize())
 	{
 		WSABUF wsabuf[2];
-		wsabuf[0].buf = SendQ->GetReadPointer();
+		wsabuf[0].buf = (char*)SendQ->GetReadPointer();
 		wsabuf[0].len = SendQ->GetDirectDequeueSize();
-		wsabuf[1].buf = SendQ->GetFirstPointer();
+		wsabuf[1].buf = (char*)SendQ->GetBuffer();
 		wsabuf[1].len = SendQ->GetUseSize() - SendQ->GetDirectDequeueSize();
 		len = wsabuf[0].len + wsabuf[1].len;
 		ret = WSASend(sock, wsabuf, 2, 0, 0, &SendOverlap, NULL);
@@ -176,7 +176,7 @@ int CSession::SendPost()
 	else
 	{
 		WSABUF wsabuf;
-		wsabuf.buf = SendQ->GetReadPointer();
+		wsabuf.buf = (char*)SendQ->GetReadPointer();
 		wsabuf.len = SendQ->GetDirectDequeueSize();
 		len = wsabuf.len;
 		ret = WSASend(sock, &wsabuf, 1, 0, 0, &SendOverlap, NULL);
@@ -226,9 +226,9 @@ void CSession::RecvPost()
 	if (RecvQ->GetDirectEnqueueSize() < RecvQ->GetFreeSize())
 	{
 		WSABUF wsabuf[2];
-		wsabuf[0].buf = RecvQ->GetWritePointer();
+		wsabuf[0].buf = (char*)RecvQ->GetWritePointer();
 		wsabuf[0].len = RecvQ->GetDirectEnqueueSize();
-		wsabuf[1].buf = RecvQ->GetFirstPointer();
+		wsabuf[1].buf = (char*)RecvQ->GetBuffer();
 		wsabuf[1].len = RecvQ->GetFreeSize() - wsabuf[0].len;
 
 		ret = WSARecv(sock, wsabuf, 2, NULL, &flags, &RecvOverlap, NULL);
@@ -237,7 +237,7 @@ void CSession::RecvPost()
 	else
 	{
 		WSABUF wsabuf;
-		wsabuf.buf = RecvQ->GetWritePointer();
+		wsabuf.buf = (char*)RecvQ->GetWritePointer();
 		wsabuf.len = RecvQ->GetDirectEnqueueSize();
 
 		ret = WSARecv(sock, &wsabuf, 1, NULL, &flags, &RecvOverlap, NULL);
@@ -251,7 +251,7 @@ void CSession::RecvPost()
 			// 10054 : 연결이 강제로 끊김, 10053 : 비정상 종료
 			if (ret != 10054 && ret != 10053)
 			{
-				//printf("-- Recv WSARecv Error %d ---\n", ret);
+				printf("-- Recv WSARecv Error %d ---\n", ret);
 			}
 			if (InterlockedDecrement(&IOCnt) == 0)
 			{

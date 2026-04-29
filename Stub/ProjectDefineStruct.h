@@ -1,4 +1,9 @@
 ﻿#pragma once
+struct st_Header
+{
+	int type;
+	int size;
+};
 
 struct st_Vector3F
 {

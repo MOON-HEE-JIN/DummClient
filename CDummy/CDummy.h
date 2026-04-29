@@ -4,33 +4,41 @@
 #include <vector>
 #include <unordered_map>
 
+#include "../Scheduling/ScheduleDefines.h"
+#include "../Scheduling/CSchedule.h"
 class CDummy
 {
 public:
-	CDummy();
+	CDummy(int id, const char* ip, short port, int maxDummyClientCount);
 	~CDummy();
 
-	void Update();
-	void StartDummyClients();
-
-	void DisconnectClient(int id);
-	bool RegisterServerIDtoClientID(int sID, int cID);
-	int IsExistZoneClient(int zone, int sID);
 private:
+	int m_iID;
+	char m_szIP[16];
+	short m_sPort;
+	bool m_bRun;
+	int m_iMaxDummyClientCount;
+
+	int m_iDummyChannel;
+	int m_iDummyZone;
+	CSchedule* m_pSchedule;
+
 	std::vector<CClient*> m_DummyClients;							// Client 전체 관리
-	std::unordered_map<int, int> m_DummyClientID;					// ServerID - ClientID;
-	int m_nDiconnectClientCount = 0;
+	
+	HANDLE m_hThread;
+	HANDLE m_hExitEvent;
 
-	int m_nReConnectTime;
-	int m_nReConnectDelay;
-	int m_nMaxConnectClient;
+private:
+	void CreateDummyClient();
+	void ReleaseDummyClient();
+	void Update();
 
-	int m_nLogTime;
-	int m_nLogDelayTime;
-
+	static unsigned __stdcall RunThread(void* arg);		// accept() Thread
+	int Run();
 public:
-	int GetServerIDtoClientID(int sID);
-	CClient* GetClientByServerID(int sID);
-};
+	void Init(int channel, int zone, CSchedule* pSchedule);
 
-extern CDummy g_DummyManager;
+	void Start();
+	void Wait();
+	void Stop();
+};

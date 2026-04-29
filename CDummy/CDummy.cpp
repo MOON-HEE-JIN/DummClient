@@ -2,151 +2,118 @@
 #include "../NetWork/CNetWork.h"
 #include "DummyDef.h"
 #include "../Log/CLog.h"
-CDummy::CDummy()
+
+#include <process.h>
+
+#include "../Test/TSchedule_Change_Zone.h"
+
+CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount)
 {
-	m_nReConnectTime = GetTickCount();
-	m_nReConnectDelay = 5 * 1000;
-	
-	m_nLogTime = GetTickCount();
-	m_nLogDelayTime = 5 * 1000;
+	m_iID = id;
+	memcpy(m_szIP, ip, sizeof(m_szIP));
+	m_sPort = port;
+	m_iMaxDummyClientCount = maxDummyClientCount;
+
+	m_bRun = false;
+	m_hThread = 0;
+	m_hExitEvent = 0;
+
+	m_pSchedule = nullptr;
 }
 
 CDummy::~CDummy()
 {
-	for (int i = 0; i < m_nMaxConnectClient; i++)
-	{
-		if (m_DummyClients[i] == nullptr)
-			continue;
-		delete m_DummyClients[i];
-	}
+	ReleaseDummyClient();
 }
 
 
 void CDummy::Update()
 {
-	bool bReConnect = false;
-	if (m_nReConnectTime + m_nReConnectDelay < GetTickCount())
+	for (int i = 0; i < m_iMaxDummyClientCount; i++)
 	{
-		m_nReConnectTime = GetTickCount();
-		bReConnect = true;
-	}
-
-	for (int i = 0; i < m_nMaxConnectClient; ++i)
-	{
-		// Update logic can be added here if needed
-		if (!m_DummyClients[i]->GetConnect())
-		{
-			if(!bReConnect)
-				continue;
-
-			m_DummyClients[i]->ReConnect("127.0.0.1", 7799, (HANDLE)GetCICPPort());
-
-			m_DummyClients[i]->SendChangePidPacket();
+		if (m_DummyClients[i] == nullptr)
 			continue;
-		}
 
-		m_DummyClients[i]->LockSession();
-		if (m_DummyClients[i]->IsSend())
-			m_DummyClients[i]->SendPost();
-		m_DummyClients[i]->UnLockSession();
+		m_DummyClients[i]->Update();
 	}
+}
 
-	if (m_nLogTime + m_nLogDelayTime < GetTickCount())
+void CDummy::CreateDummyClient()
+{
+	for (int i = 0; i < m_iMaxDummyClientCount; i++)
 	{
-		m_nLogTime = GetTickCount();
-		float avg[MAX_ZONE_NUMBER+1] = { 0, };
-		int cnt[MAX_ZONE_NUMBER+1] = { 0, };
-		int nLoop = m_DummyClients.size();
-
-		for (int i = 0; i < nLoop; i++)
+		CClient* pClient = new CClient(m_iID, i);
+		int ret = pClient->Connect(m_szIP, m_sPort, (HANDLE)GetCICPPort());
+		if (ret != 0)
 		{
-			float t = m_DummyClients[i]->GetAvgNetTime();
-			if (t == 0)
-				t = 0.01f;
-
-			avg[m_DummyClients[i]->GetZoneID()] += t;
-			cnt[m_DummyClients[i]->GetZoneID()]++;
+			delete pClient;
+			pClient = nullptr;
+			g_LogDummy.ELog("ERROR Create Client");
+			exit(1);
 		}
-
-		g_LogDummy.ILog("Zone LatencyClients AvgLatency []::[]:[]");
-		g_LogDummy.ILog("[1]::[%d]:[%.2f]\t[2]::[%d]:[%.2f]\t[3]::[%d]:[%.2f]"
-			, cnt[1], avg[1], cnt[2], avg[2], cnt[3], avg[3]);
-		g_LogDummy.ILog("[4]::[%d]:[%.2f]\t[5]::[%d]:[%.2f]\t[6]::[%d]:[%.2f]"
-			, cnt[4], avg[4], cnt[5], avg[5], cnt[6], avg[6]);
+		pClient->Init(m_iDummyChannel, m_iDummyZone, m_pSchedule);
+		m_DummyClients.push_back(pClient);
 	}
 }
 
-void CDummy::StartDummyClients()
+void CDummy::ReleaseDummyClient()
 {
-	// 테스트 하는 클라 개수 = Zone 당 클라이언트 * 최대 Zone 개수
-	m_nMaxConnectClient = MAX_CONNECT_CLIENT * MAX_ZONE_NUMBER;
-
-	int ClinetID = 0;
-	for (int i = 1; i <= MAX_ZONE_NUMBER; i++)
+	for (int i = 0; i < m_iMaxDummyClientCount; i++)
 	{
-		for (int j = 0; j < MAX_CONNECT_CLIENT; j++)
-		{
-			CClient* pClient = new CClient(ClinetID++, i, j);
-			int ret = pClient->Connect("127.0.0.1", 7799, (HANDLE)GetCICPPort());
-			if (ret != 0)
-			{
-				delete pClient;
-				pClient = nullptr;
-			}
-			m_DummyClients.push_back(pClient);
-
-			if(pClient != nullptr)
-				pClient->SendChangePidPacket();
-		}
-	}
-}
-
-
-void CDummy::DisconnectClient(int id)
-{
-	m_nDiconnectClientCount++;
-}
-
-bool CDummy::RegisterServerIDtoClientID(int sID, int cID)
-{
-	if (m_DummyClientID.find(sID) != m_DummyClientID.end())
-		return false;
-
-	m_DummyClientID[sID] = cID;
-}
-
-int CDummy::IsExistZoneClient(int zone, int sID)
-{
-	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
-		return DUMMY_ERROR::NOT_EXIST_CLIENT;
-
-	int ClientID = m_DummyClientID[sID];
-	for (int i = 0; i < m_nMaxConnectClient; i++)
-	{
-		if (ClientID != m_DummyClients[i]->GetClientID())
+		if (m_DummyClients[i] == nullptr)
 			continue;
-		if (zone != m_DummyClients[i]->GetZoneID())
-			return DUMMY_ERROR::NOT_EQUAL_ZONE;
+		delete m_DummyClients[i];
 	}
+	m_DummyClients.clear();
+}
+
+unsigned __stdcall CDummy::RunThread(void* arg)
+{
+	CDummy* pThis = static_cast<CDummy*>(arg);
+
+	pThis->Run();
 
 	return 0;
 }
 
-int CDummy::GetServerIDtoClientID(int sID)
+int CDummy::Run()
 {
-	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
-		return -1;
+	CreateDummyClient();
+	while(m_bRun)
+	{
+		//1000 Frames 1초당 1000 처리
+		int ret = WaitForSingleObject(m_hExitEvent, 1);
 
-	return m_DummyClientID[sID];
+		// 종료 이벤트
+		if (ret == WAIT_OBJECT_0)
+			break;
+
+		Update();
+	}
+	return 0;
 }
 
-CClient* CDummy::GetClientByServerID(int sID)
+void CDummy::Init(int channel, int zone, CSchedule* pSchedule)
 {
-	if (m_DummyClientID.find(sID) == m_DummyClientID.end())
-		return nullptr;
-
-	return m_DummyClients[m_DummyClientID[sID]];
+	m_iDummyChannel = channel;
+	m_iDummyZone = zone;
+	m_pSchedule = pSchedule;
 }
 
+void CDummy::Start()
+{
+	m_bRun = true;
+	m_hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	m_hThread = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
+}
 
-CDummy g_DummyManager;
+void CDummy::Wait()
+{
+	WaitForSingleObject(m_hThread, INFINITE);
+}
+
+void CDummy::Stop()
+{
+	m_bRun = false;
+	SetEvent(m_hExitEvent);
+}

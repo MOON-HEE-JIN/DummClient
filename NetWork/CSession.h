@@ -2,22 +2,27 @@
 #pragma comment(lib, "ws2_32")
 
 #include <WinSock2.h>
-#include "../CUtill/RingQueue.h"
+#include "../CUtill/CRingBuffer.h"
 #include "../CUtill/CPacket.h"
 #include <queue>
 #include <atomic>
+#include <vector>
 
+struct st_DebugHeader
+{
+	int type;
+	int size;
+};
 class CSession
 {
 public:
 	CSession();
 	~CSession();
-
 private:
 	SOCKET sock;
 
-	RingQueue* SendQ;
-	RingQueue* RecvQ;
+	CRingBuffer* SendQ;
+	CRingBuffer* RecvQ;
 
 	DWORD IOCnt;
 	DWORD bSendFlag;
@@ -49,8 +54,8 @@ public:
 	void LockSession() { EnterCriticalSection(&cs); }
 	void UnLockSession() { LeaveCriticalSection(&cs); }
 public:
-	RingQueue* GetSendBuffer() { return SendQ; }
-	RingQueue* GetRecvBuffer() { return RecvQ; }
+	CRingBuffer* GetSendBuffer() { return SendQ; }
+	CRingBuffer* GetRecvBuffer() { return RecvQ; }
 
 	OVERLAPPED* GetSendOverlapPointer() { return &SendOverlap; }
 	OVERLAPPED* GetRecvOverlapPointer() { return &RecvOverlap; }

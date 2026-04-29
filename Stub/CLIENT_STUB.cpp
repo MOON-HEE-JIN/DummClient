@@ -11,6 +11,8 @@ void Stub<Object,Packet>::InitRegisterFuncPointer()
 	m_mapGAMEProc[GAME::CREATECHAR] = std::bind(&Stub::DO_GAME_CREATECHAR, this, std::placeholders::_1, std::placeholders::_2);
 	m_mapGAMEProc[GAME::MOVESTART] = std::bind(&Stub::DO_GAME_MOVESTART, this, std::placeholders::_1, std::placeholders::_2);
 	m_mapGAMEProc[GAME::MOVESTOP] = std::bind(&Stub::DO_GAME_MOVESTOP, this, std::placeholders::_1, std::placeholders::_2);
+	m_mapGAMEProc[GAME::CHANGEINGZONE] = std::bind(&Stub::DO_GAME_CHANGEINGZONE, this, std::placeholders::_1, std::placeholders::_2);
+	m_mapOBSERVERProc[OBSERVER::CONNET_OBSERVER] = std::bind(&Stub::DO_OBSERVER_CONNET_OBSERVER, this, std::placeholders::_1, std::placeholders::_2);
 }
 template<typename Object, typename Packet>
 void Stub<Object,Packet>::DO_GAME_Proc(int type, Object* pTarget, Packet& cPacket)
@@ -22,5 +24,17 @@ void Stub<Object,Packet>::DO_GAME_Proc(int type, Object* pTarget, Packet& cPacke
 		return;
 	}
 	ret = m_mapGAMEProc[type](pTarget, cPacket);
+	if(ret != 0)		DO_ERROR_RESULT(pTarget, ret, type);
+}
+template<typename Object, typename Packet>
+void Stub<Object,Packet>::DO_OBSERVER_Proc(int type, Object* pTarget, Packet& cPacket)
+{
+	int ret = 0;
+	if(m_mapOBSERVERProc.find(type) == m_mapOBSERVERProc.end())
+	{
+		ret = DO_ERROR_PACKET(pTarget, cPacket);
+		return;
+	}
+	ret = m_mapOBSERVERProc[type](pTarget, cPacket);
 	if(ret != 0)		DO_ERROR_RESULT(pTarget, ret, type);
 }

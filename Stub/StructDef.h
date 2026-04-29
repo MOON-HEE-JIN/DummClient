@@ -2,11 +2,6 @@
 
 #include <string>
 #include "ProjectDefineStruct.h"
-struct st_Header
-{
-	__int32		type;
-	__int32		size;
-};
 struct st_EntityInfo
 {
 	__int32		type;
@@ -17,17 +12,28 @@ struct st_ConnectInfo
 {
 	__int32		ID;
 };
+struct st_String
+{
+	__int16		length;
+	std::string		comment;
+};
+struct st_Msg
+{
+	__int32		type;
+	st_String		Message;
+};
 struct st_CTS_ChangeZone
 {
+	__int32		channel;
 	__int32		zone;
 };
 struct st_CTS_EnterZone
 {
+	__int32		channel;
 	__int32		zone;
 };
 struct st_CTS_LoopBack
 {
-	__int32		zone;
 	__int64		data;
 };
 struct st_CTS_MoveStart
@@ -40,10 +46,21 @@ struct st_CTS_MoveStop
 {
 	st_Vector3F		pos;
 };
+struct st_CTS_ObserverConnect
+{
+	__int32		ID;
+	__int32		zone;
+};
 struct st_STC_ChangeZone
 {
 	__int32		ret;
+	__int32		channel;
 	__int32		zone;
+};
+struct st_STC_ChangeingZone
+{
+	__int32		ret;
+	__int32		type;
 };
 struct st_STC_ConnectInfo
 {
@@ -63,13 +80,13 @@ struct st_STC_EnterZone
 };
 struct st_STC_LeaveZone
 {
+	__int32		channel;
 	__int32		zone;
 	__int32		ID;
 };
 struct st_STC_LoopBack
 {
 	__int32		ret;
-	__int32		zone;
 	__int64		data;
 };
 struct st_STC_MoveStart
@@ -83,4 +100,8 @@ struct st_STC_MoveStop
 	__int32		type;
 	__int32		ID;
 	st_Vector3F		pos;
+};
+struct st_STC_ObserverConnect
+{
+	__int32		ret;
 };

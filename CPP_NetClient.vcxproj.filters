@@ -31,6 +31,15 @@
     <Filter Include="소스 파일\CDummy">
       <UniqueIdentifier>{cd45fc6c-b3c1-4490-a986-b1c79af1b22d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Scheduling">
+      <UniqueIdentifier>{86bb09e9-5d6d-4326-8bcf-ddc1fb52082b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\TestSchedule">
+      <UniqueIdentifier>{4f3be38e-6b89-4cd3-b84e-23b68efa582b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Zone">
+      <UniqueIdentifier>{b8878ab9-17e7-4c8e-b501-bacb1fa13383}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NetWork\CNetWork.h">
@@ -40,9 +49,6 @@
       <Filter>소스 파일\NetWork</Filter>
     </ClInclude>
     <ClInclude Include="CUtill\CPacket.h">
-      <Filter>소스 파일\CUtill</Filter>
-    </ClInclude>
-    <ClInclude Include="CUtill\RingQueue.h">
       <Filter>소스 파일\CUtill</Filter>
     </ClInclude>
     <ClInclude Include="Stub\CLIENT_STUB.h">
@@ -93,15 +99,54 @@
     <ClInclude Include="Stub\ProjectDefineStruct.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
+    <ClInclude Include="CUtill\CRingBuffer.h">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduling\CSchedule.h">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduling\ScheduleDefines.h">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_Change_Zone.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="CGrid\CGrid.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CGrid\GridDefine.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CUtill\CBinFile.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CUtill\CBinFileDefine.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\CBinFileManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\CZoneManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinVoxel.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinZone.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\CBinZoneIdx.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
+    <ClInclude Include="Zone\ZoneDefines.h">
+      <Filter>소스 파일\Zone</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
       <Filter>소스 파일\NetWork</Filter>
     </ClCompile>
     <ClCompile Include="CUtill\CPacket.cpp">
-      <Filter>소스 파일\CUtill</Filter>
-    </ClCompile>
-    <ClCompile Include="CUtill\RingQueue.cpp">
       <Filter>소스 파일\CUtill</Filter>
     </ClCompile>
     <ClCompile Include="NetWork\CSession.cpp">
@@ -133,6 +178,36 @@
     </ClCompile>
     <ClCompile Include="CDummy\CDummy.cpp">
       <Filter>소스 파일\CDummy</Filter>
+    </ClCompile>
+    <ClCompile Include="CUtill\CRingBuffer.cpp">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduling\ScheduleDefines.cpp">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduling\CSchedule.cpp">
+      <Filter>소스 파일\Scheduling</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="CUtill\CBinFile.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\CBinFileManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\CZoneManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinVoxel.cpp">
+      <Filter>소스 파일\Zone</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinZone.cpp">
+      <Filter>소스 파일\Zone</Filter>
+    </ClCompile>
+    <ClCompile Include="Zone\CBinZoneIdx.cpp">
+      <Filter>소스 파일\Zone</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -35,4 +35,10 @@ private:
 	// Stub을(를) 통해 상속됨
 	int DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket) override;
 	int DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket) override;
+
+	// Stub을(를) 통해 상속됨
+	int DO_OBSERVER_CONNET_OBSERVER(CClient* pTarget, CPacket& pReqPacket) override;
+
+	// Stub을(를) 통해 상속됨
+	int DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket) override;
 };

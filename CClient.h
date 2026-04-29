@@ -1,9 +1,17 @@
 ﻿#pragma once
 #include "NetWork/CSession.h"
+#include "MemoryManager/CLockFreeQueue_FromGPT.h"
+
+#include "GameServerDef.h"
+#include "Scheduling/ScheduleDefines.h"
+#include "Scheduling/CSchedule.h"
+
+struct st_Schedule;
+
 class CClient : public CSession
 {
 public:
-	CClient(int ClientID, int testZone, int inZoneClientID);
+	CClient(int Dummyid, int id);
 	~CClient() {}
 
 	// CSession 에서 상속
@@ -12,65 +20,52 @@ public:
 	void DisConnect()
 	{
 		CloseSocket();
+		Clear();
 	}
-	void ReConnect(const char IP[16], unsigned short Port, HANDLE cicp);
-
 private:
-	int m_nClientID;		// 클라이언트 구분 ID
-	int m_nZoneID;		// 클라이언트 Zone ID
-	int m_nServerClientID;	// Server 에서 사용중인 ID
-
-	st_Vector3F m_stPosition;
-	st_Vector3F m_stDirection;
-	st_Vector3F m_stGoalPosition;
-	float m_fSpeed;
-
-private:
-	int m_nPreZoneID;
-	int m_nInZoneClientID;	// Dummy 에서 관리하는 Zone 내에서의 자기 vector index
+	int m_iManagementDummyID;		// 관리하는 CDummy ID
+	int m_iID;
+	int m_iServerID;
 	
-	std::atomic<bool> m_bWaitServerResponse;		// 서버 응답을 기다리는 상태
+	int m_iSendDelay;				// 패킷 전송 지연 시간 (ms)
+	int m_iSendTime;					// 패킷 전송 시간 (ms)
 
-	__int64 m_LoopbackData;
-	int m_nSendReqDelayTime;
-	int m_nLastSendReqTime;
-
-	int m_nLoopbackSendCount;
-	int m_nDisConnectRandomCount;
+	bool m_bLogin;
 	
-	int m_nChangeZoneIDCount;
-	int m_nChangeZoneIDRequestCount;
+	int m_iDefaultZoneID;				// 기본 Zone ID
+	int m_iDefaultChannel;				// 기본 Channel
+	int m_iZoneID;						// 현재 Zone ID
+	int m_iChannel;						// 현재 Channel
 
-	double m_dMoveStartTime;
+	CLockFreeQueue_MPSC<RECV_JOB> m_PacketPool;
+
+	CSchedule* m_pSchedule;				// 현재 스케줄
+	int m_iWorkScheduleLoop;
+	int m_iWorkScheduleRogress;			// 현재 작업 스케줄 진행도
+	st_Schedule* m_pWorkSchedule;		// 현재 작업 스케줄
 
 public:
-	int GetSendReqDelayTime() const { return m_nSendReqDelayTime; }
-	__int64 GetLoopbackData() const { return m_LoopbackData; }
-	int GetZoneID() { return m_nZoneID; }
-	int	GetClientID() { return m_nClientID; }
-	int GetServerClientID() { return m_nServerClientID; }
-	double GetMoveStartTime() const { return m_dMoveStartTime; }
-	st_Vector3F GetPosition() const { return m_stPosition; }
-	st_Vector3F GetDirection() const { return m_stDirection; }
-	st_Vector3F GetGoalPosition() const { return m_stGoalPosition; }
+	void Init(int channel, int zone, CSchedule* pSchedule);
+	void SetSchedule(CSchedule* pSchedule);
 
-	void CreateCharInfo(st_Vector3F pos, float speed);
-	void SetServerClientID(int value);
+private:
+	void SetWorkSchedule(st_Schedule* pSchedule);
+	void CheckSchedule();
+	void SetFirstSchedule();
+	void NextSchedule();
+	
+	void Clear();
+public:
+	void SetChangeZone(int channel, int zoneID) { m_iZoneID = zoneID; m_iChannel = channel; }
 
-	void CompletedWaitServerResponse() { m_bWaitServerResponse = false; }
-
-	__int64 IncrementLoopbackData() { return ++m_LoopbackData; }
-	bool IncrementDisConnectRandomCount();
-	void ChangeZoneIDRequest();
-	void ReStoreZoneID() { m_nZoneID = m_nPreZoneID; };
-	bool IsSend();
-	void MoveStop(st_Vector3F comparevector);
+	bool GetLogin() { return m_bLogin; }
+	int GetDeafultZoneID() { return m_iDefaultZoneID; }
+	int GetDefaultChannel() { return m_iDefaultChannel; }
+	int GetZoneID() { return m_iZoneID; }
+	int GetChannel() { return m_iChannel; }
 
 public:
-	void DummyTestPacketSend();
+	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완
 
-	void SendChangePidPacket();
-	void SendLoopbackPacket();
-	void SendMovestartPacket();
-	void SendMoveStopPacket();
+	void Update();
 };
