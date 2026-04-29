@@ -69,6 +69,7 @@ int CPacketProc::DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket)
 {
+
 	return 0;
 }
 
