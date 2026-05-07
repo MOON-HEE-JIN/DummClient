@@ -7,7 +7,7 @@
 
 #include "../Test/TSchedule_Change_Zone.h"
 
-CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount)
+CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount, int defaultid)
 {
 	m_iID = id;
 	memcpy(m_szIP, ip, sizeof(m_szIP));
@@ -19,6 +19,8 @@ CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount)
 	m_hExitEvent = 0;
 
 	m_pSchedule = nullptr;
+
+	m_iDummyDefaultID = defaultid;
 }
 
 CDummy::~CDummy()
@@ -40,7 +42,8 @@ void CDummy::Update()
 
 void CDummy::CreateDummyClient()
 {
-	for (int i = 0; i < m_iMaxDummyClientCount; i++)
+	int max = m_iMaxDummyClientCount + m_iDummyDefaultID;
+	for (int i = m_iDummyDefaultID; i < max; i++)
 	{
 		CClient* pClient = new CClient(m_iID, i);
 		int ret = pClient->Connect(m_szIP, m_sPort, (HANDLE)GetCICPPort());

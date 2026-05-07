@@ -9,7 +9,7 @@
 class CDummy
 {
 public:
-	CDummy(int id, const char* ip, short port, int maxDummyClientCount);
+	CDummy(int id, const char* ip, short port, int maxDummyClientCount, int defaultid);
 	~CDummy();
 
 private:
@@ -21,12 +21,15 @@ private:
 
 	int m_iDummyChannel;
 	int m_iDummyZone;
+	int m_iDummyDefaultID;
 	CSchedule* m_pSchedule;
 
 	std::vector<CClient*> m_DummyClients;							// Client 전체 관리
 	
 	HANDLE m_hThread;
 	HANDLE m_hExitEvent;
+public:
+	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
 
 private:
 	void CreateDummyClient();

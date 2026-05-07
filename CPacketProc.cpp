@@ -2,7 +2,7 @@
 #include "Stub/EnumDef.h"
 #include "Log/CLog.h"
 #include "CDummy/DummyDef.h"
-#include "CDummy/CDummy.h"
+#include "CDummy/CDummyManager.h"
 #include "CUtill/CUtill.h"
 
 
@@ -59,6 +59,9 @@ int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 
 	pTarget->ConnectServerLoginThread(res.info.ID);
 	
+
+	g_DummyManager.AddDummyClient(pTarget);
+
 	return 0;
 }
 

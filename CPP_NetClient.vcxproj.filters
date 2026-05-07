@@ -141,6 +141,9 @@
     <ClInclude Include="Zone\ZoneDefines.h">
       <Filter>소스 파일\Zone</Filter>
     </ClInclude>
+    <ClInclude Include="CDummy\CDummyManager.h">
+      <Filter>소스 파일\CDummy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -188,9 +191,6 @@
     <ClCompile Include="Scheduling\CSchedule.cpp">
       <Filter>소스 파일\Scheduling</Filter>
     </ClCompile>
-    <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
-      <Filter>소스 파일\TestSchedule</Filter>
-    </ClCompile>
     <ClCompile Include="CUtill\CBinFile.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -208,6 +208,12 @@
     </ClCompile>
     <ClCompile Include="Zone\CBinZoneIdx.cpp">
       <Filter>소스 파일\Zone</Filter>
+    </ClCompile>
+    <ClCompile Include="CDummy\CDummyManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
+      <Filter>소스 파일\CDummy</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
