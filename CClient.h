@@ -59,6 +59,7 @@ public:
 	void SetChangeZone(int channel, int zoneID) { m_iZoneID = zoneID; m_iChannel = channel; }
 
 	bool GetLogin() { return m_bLogin; }
+	int GetID() { return m_iID; }
 	int GetDeafultZoneID() { return m_iDefaultZoneID; }
 	int GetDefaultChannel() { return m_iDefaultChannel; }
 	int GetZoneID() { return m_iZoneID; }
