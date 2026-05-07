@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="CClient.h" />
     <ClInclude Include="CDummy\CDummy.h" />
+    <ClInclude Include="CDummy\CDummyManager.h" />
     <ClInclude Include="CDummy\DummyDef.h" />
     <ClInclude Include="CGrid\CGrid.h" />
     <ClInclude Include="CGrid\GridDefine.h" />
@@ -166,6 +167,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="CDummy\CDummy.cpp" />
+    <ClCompile Include="CDummy\CDummyManager.cpp" />
     <ClCompile Include="CPacketProc.cpp" />
     <ClCompile Include="CUtill\CBinFile.cpp" />
     <ClCompile Include="CUtill\CPacket.cpp" />

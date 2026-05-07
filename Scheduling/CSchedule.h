@@ -9,6 +9,7 @@ public:
 	~CSchedule() {};
 
 protected:
+	int m_iType;
 	int m_iLogicScheduleIndex;
 	std::vector<int> m_vecSchedules;
 
