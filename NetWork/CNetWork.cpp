@@ -71,14 +71,10 @@ unsigned __stdcall WorkerThread(void* arg)
 			}
 			else
 			{
-				DWORD t = GetTickCount();
-				pSession->GetRecvBuffer()->MoveWritePointer(transfrerred);
+				LARGE_INTEGER recvtime;
+				QueryPerformanceCounter(&recvtime);
 
-				if (!pSession->GetQueueEmpty())
-				{
-					DWORD t2 = pSession->GetSendTime();
-					pSession->AddSRNetTime(t - t2);
-				}
+				pSession->GetRecvBuffer()->MoveWritePointer(transfrerred);
 
 				st_Header header;
 
@@ -106,7 +102,7 @@ unsigned __stdcall WorkerThread(void* arg)
 
 					pSession->LockSession();
 					// 지금은 Clinet 직접 -> 로 실행 추후 에 Job 형태로 수정
-					pSession->OnRecv(header.type, cPacket);
+					pSession->OnRecv(header.type, cPacket, recvtime.QuadPart);
 					
 					pSession->UnLockSession();
 				}

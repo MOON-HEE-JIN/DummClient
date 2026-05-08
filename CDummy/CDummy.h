@@ -28,12 +28,17 @@ private:
 	
 	HANDLE m_hThread;
 	HANDLE m_hExitEvent;
+
+	int m_iDelayLatencyTime;
+	int m_iLatencyTime;
+
 public:
 	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
 
 private:
 	void CreateDummyClient();
 	void ReleaseDummyClient();
+	void LogClientLatencyTime();
 	void Update();
 
 	static unsigned __stdcall RunThread(void* arg);		// accept() Thread

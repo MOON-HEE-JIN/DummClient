@@ -25,11 +25,21 @@ CClient::CClient(int Dummyid, int id)
 
 	m_iSendDelay = 3 * 1000; // 3초
 	m_iSendTime = 0;
+
+	m_dLatencyTime.store(0);
 }
 
-void CClient::OnRecv(int type, CPacket& cPacket)
+void CClient::OnRecv(int type, CPacket& cPacket, double recvtime)
 {
+	double sendtime = PopSendTime(type);
+
 	m_PacketPool.Enqueue({ type, cPacket });
+
+	if (sendtime == -1)
+		return;
+
+	double time = (recvtime - sendtime) * 1000 / freq.QuadPart; // ms
+	m_dLatencyTime.store(time);
 }
 
 void CClient::Init(int channel, int zone, CSchedule* pSchedule)

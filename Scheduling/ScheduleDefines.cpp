@@ -1,5 +1,6 @@
 ﻿#include "ScheduleDefines.h"
 #include "../Log/CLog.h"
+
 bool st_Schedule_Login::DoSchedule(CClient* pClient)
 {
 	if (pClient->GetLogin())
@@ -20,7 +21,7 @@ bool st_Schedule_LoginChangeZone::DoInitRunSchedule(CClient* pClient)
 
 	packet << req;
 
-	pClient->SendEnqueuePacket(&packet);
+	pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
 
 	return true;
 }
@@ -80,7 +81,7 @@ bool st_Schedule_ChangeZone::DoInitRunSchedule(CClient* pClient)
 
 	packet << req;
 
-	pClient->SendEnqueuePacket(&packet);
+	pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
 
 	return true;
 }
@@ -109,7 +110,7 @@ bool st_Schedule_ReturnZone::DoInitRunSchedule(CClient* pClient)
 
 	packet << req;
 
-	pClient->SendEnqueuePacket(&packet);
+	pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
 
 	return true;
 }

@@ -5,8 +5,10 @@
 #include "../CUtill/CRingBuffer.h"
 #include "../CUtill/CPacket.h"
 #include <queue>
-#include <atomic>
 #include <vector>
+#include <map>
+
+#include "../Log/LogDefines.h"
 
 struct st_DebugHeader
 {
@@ -32,16 +34,20 @@ private:
 
 	CRITICAL_SECTION cs;
 	CRITICAL_SECTION m_csSendQ;
-	CRITICAL_SECTION m_DebugCSTime;
+	CRITICAL_SECTION m_csSendTime;
+
 	BOOL bConnect;
 private:
 	HANDLE CICP;
+protected:
+	LARGE_INTEGER freq;
+	
+	std::vector<int> m_vecEnqueueType;
+	std::map<int, std::queue<double>> m_mapSendTime;
 
-	std::queue<DWORD> m_DebugTimeQueue;
-
-	LONGLONG m_DebugTotalNetTime;
-	std::atomic<int> m_DebugTotalCount;
-	std::atomic<float> m_DebugAvgTime;
+	
+	void PushSendTime(int type, double time);
+	double PopSendTime(int type);
 public:
 	int IncrementIOCnt() { return InterlockedIncrement(&IOCnt); }
 	int DecrementIOCnt() { return InterlockedDecrement(&IOCnt); }
@@ -61,20 +67,13 @@ public:
 	OVERLAPPED* GetRecvOverlapPointer() { return &RecvOverlap; }
 
 	BOOL		GetConnect() { return bConnect; }
-	BOOL		GetQueueEmpty();
-
-	DWORD		GetSendTime();
-	float		GetAvgNetTime() { return m_DebugAvgTime.load(); }
-	int			GetTotalNetCount() { return m_DebugTotalCount.load(); }
-
-	void		AddSRNetTime(DWORD t);
 public:
-	virtual void OnRecv(int type, CPacket& cPacket) = 0;
+	virtual void OnRecv(int type, CPacket& cPacket, double recvtime = 0) = 0;
 	int Connect(const char IP[16], unsigned short Port, HANDLE cicp);
 	void Clear();
 	void CloseSocket();
 	int SendPacket(CPacket* _pPacket);
-	void SendEnqueuePacket(CPacket* _pPacket);
+	void SendEnqueuePacket(int type, CPacket* _pPacket);
 	int SendPost();
 	void RecvPost();
 };
