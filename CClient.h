@@ -15,7 +15,7 @@ public:
 	~CClient() {}
 
 	// CSession 에서 상속
-	void OnRecv(int type, CPacket& cPacket) override;
+	void OnRecv(int type, CPacket& cPacket, double recvtime = 0) override;
 
 	void DisConnect()
 	{
@@ -44,6 +44,7 @@ private:
 	int m_iWorkScheduleRogress;			// 현재 작업 스케줄 진행도
 	st_Schedule* m_pWorkSchedule;		// 현재 작업 스케줄
 
+	std::atomic<double> m_dLatencyTime;
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
 	void SetSchedule(CSchedule* pSchedule);
@@ -64,6 +65,7 @@ public:
 	int GetDefaultChannel() { return m_iDefaultChannel; }
 	int GetZoneID() { return m_iZoneID; }
 	int GetChannel() { return m_iChannel; }
+	double GetLatency() { return m_dLatencyTime.load(); }
 
 public:
 	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완

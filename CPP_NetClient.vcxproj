@@ -141,6 +141,7 @@
     <ClInclude Include="CUtill\CUtill.h" />
     <ClInclude Include="GameServerDef.h" />
     <ClInclude Include="Log\CLog.h" />
+    <ClInclude Include="Log\LogDefines.h" />
     <ClInclude Include="Manager\CBinFileManager.h" />
     <ClInclude Include="Manager\CZoneManager.h" />
     <ClInclude Include="MemoryManager\CHazardMemoryPool_FromGPT.h" />
