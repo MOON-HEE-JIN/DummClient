@@ -5,6 +5,8 @@
 #include "GameServerDef.h"
 #include "Scheduling/ScheduleDefines.h"
 #include "Scheduling/CSchedule.h"
+#include "ClientDefines.h"
+#include "CUtill/CLockQueue.h"
 
 struct st_Schedule;
 
@@ -37,14 +39,20 @@ private:
 	int m_iZoneID;						// 현재 Zone ID
 	int m_iChannel;						// 현재 Channel
 
-	CLockFreeQueue_MPSC<RECV_JOB> m_PacketPool;
-
+	CLockQueue<RECV_JOB> m_queue;
+	
 	CSchedule* m_pSchedule;				// 현재 스케줄
 	int m_iWorkScheduleLoop;
 	int m_iWorkScheduleRogress;			// 현재 작업 스케줄 진행도
 	st_Schedule* m_pWorkSchedule;		// 현재 작업 스케줄
+	std::atomic<int> m_iCompleteScheduleCount;
 
 	std::atomic<double> m_dLatencyTime;
+private:
+	ESTATE m_eState;
+	st_Vector3F m_stPos;
+	float m_fMoveSpeed;
+
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
 	void SetSchedule(CSchedule* pSchedule);
@@ -61,11 +69,25 @@ public:
 
 	bool GetLogin() { return m_bLogin; }
 	int GetID() { return m_iID; }
+	int GetServerID() { return m_iServerID; }
 	int GetDeafultZoneID() { return m_iDefaultZoneID; }
 	int GetDefaultChannel() { return m_iDefaultChannel; }
 	int GetZoneID() { return m_iZoneID; }
 	int GetChannel() { return m_iChannel; }
 	double GetLatency() { return m_dLatencyTime.load(); }
+	float GetSpeed() { return m_fMoveSpeed; }
+	int GetCompleteScheduleCount() { return m_iCompleteScheduleCount.load(); }
+
+	st_Vector3F GetPos() { return m_stPos; }
+	ESTATE GetState() { return m_eState; }
+
+public:
+	void SetState(ESTATE state) { m_eState = state; }
+
+public:
+	void AddCompleteScheduleCount() { m_iCompleteScheduleCount.fetch_add(1); }
+	void AddPos(st_Vector3F pos) { m_stPos += pos; }
+	void Arrive(st_Vector3F pos) { m_stPos = pos; }
 
 public:
 	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완

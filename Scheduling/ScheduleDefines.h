@@ -4,32 +4,34 @@
 
 class CClient;
 
-enum SCHEDULE_TEST_TYPE
+enum ESCHEDULE_TEST_TYPE
 {
 	SCHEDULE_RETURN_ZONE,
 	SCHEDULE_MOVE,
 };
 
-enum SCHEDULE_TYPE
+enum ESCHEDULE_TYPE
 {
 	SCHEDULE_TYPE_NONE,
 	SCHEDULE_TYPE_LOGIN,
 	SCHEDULE_TYPE_LOGIN_CHANGE_ZONE,
 	SCHEDULE_TYPE_CHANGE_ZONE,
 	SCHEDULE_TYPE_RETURN_ZONE,
+	SCHEDULE_TYPE_MOVE_START,
+	SCHEDULE_TYPE_MOVE_STOP,
 };
 
 struct st_Schedule
 {
 protected:
-	const SCHEDULE_TYPE eType;		// 스케줄 타입
+	const ESCHEDULE_TYPE eType;		// 스케줄 타입
 	bool bRecvWait;					// 응답 대기
 	bool bComplete;					// 완료 여부
 
 public:
-	st_Schedule(SCHEDULE_TYPE type, bool wait = false) : eType(type), bRecvWait(wait), bComplete(false) {}
+	st_Schedule(ESCHEDULE_TYPE type, bool wait = false) : eType(type), bRecvWait(wait), bComplete(false) {}
 
-	SCHEDULE_TYPE GetType() const { return eType; }
+	ESCHEDULE_TYPE GetType() const { return eType; }
 	bool IsRecvWait() const { return bRecvWait; }
 	bool IsComplete() const { return bComplete; }
 
@@ -81,6 +83,39 @@ struct st_Schedule_ReturnZone : public st_Schedule
 		iZoneID = 0;
 		iChannel = 0;
 	}
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MoveStart : public st_Schedule
+{
+	st_Vector3F StartPos;
+	st_Vector3F EndPos;
+	st_Vector3F Dir;
+	double StartTime;
+	double UpdateTime;
+
+	st_Schedule_MoveStart()
+		: st_Schedule(SCHEDULE_TYPE_MOVE_START)
+	{
+		StartTime = 0;
+		UpdateTime = 0;
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MoveStop : public st_Schedule
+{
+	st_Vector3F StopPos;
+
+	st_Schedule_MoveStop()
+		: st_Schedule(SCHEDULE_TYPE_MOVE_STOP)
+	{
+
+	}
+
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
 	virtual bool DoSchedule(CClient* pClient) override;
 };

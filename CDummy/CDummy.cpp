@@ -84,6 +84,8 @@ void CDummy::LogClientLatencyTime()
 		double minTime = value;
 		double totalTime = value;
 
+		int completeschedulecount = m_DummyClients[0]->GetCompleteScheduleCount();
+
 		for (int i = 1; i < m_iMaxDummyClientCount; i++)
 		{
 			value = m_DummyClients[i]->GetLatency();
@@ -94,7 +96,8 @@ void CDummy::LogClientLatencyTime()
 		
 		double avg = totalTime / m_iMaxDummyClientCount;
 
-		g_LogDummy.ILog("DummyID[%d] Max : %.3f, Min : %.3f, Avg : %.3f", m_iID, maxTime, minTime, avg);
+		g_LogDummy.ILog("DummyID[%d] Max : %.3f, Min : %.3f, Avg : %.3f Complete : %d"
+			, m_iID, maxTime, minTime, avg, completeschedulecount);
 
 		m_iLatencyTime = GetTickCount();
 	}

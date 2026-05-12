@@ -72,12 +72,39 @@ int CPacketProc::DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket)
 {
+	st_STC_MoveStart res;
+	pReqPacket >> res;
 
+	if (res.ret != 0)
+	{
+		g_LogDummy.ELog("MOVE_START_ERROR rst : %d  sPos[%f,%f,%f], cPos[%f,%f,%f]", res.ret, res.pos.X, res.pos.Y, res.pos.Z, pTarget->GetPos().X, pTarget->GetPos().Y, pTarget->GetPos().Z);
+	}
+
+	pTarget->SetState(ESTATE::MOVE_START);
 	return 0;
 }
 
 int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 {
+	st_STC_MoveStop res;
+	pReqPacket >> res;
+
+	if (res.ret != 0)
+	{
+		g_LogDummy.ELog("MOVE_STOP_ERROR");
+		return 0;
+	}
+
+	if (res.ID == pTarget->GetServerID())
+	{
+		int diff = pTarget->GetPos().DistanceToSquared(res.pos);
+
+		//if (diff >= 10)
+		//	g_LogDummy.ELog("CheckFrames diff : %d", diff);
+
+		pTarget->SetState(ESTATE::MOVE_STOP);
+	}
+
 	return 0;
 }
 

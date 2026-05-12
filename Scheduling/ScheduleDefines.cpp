@@ -1,6 +1,6 @@
 ﻿#include "ScheduleDefines.h"
 #include "../Log/CLog.h"
-
+#include "../CUtill/CUtill.h"
 bool st_Schedule_Login::DoSchedule(CClient* pClient)
 {
 	if (pClient->GetLogin())
@@ -123,5 +123,85 @@ bool st_Schedule_ReturnZone::DoSchedule(CClient* pClient)
 		bComplete = true;
 		return true;
 	}
+	return false;
+}
+
+bool st_Schedule_MoveStart::DoInitRunSchedule(CClient* pClient)
+{
+	StartPos = pClient->GetPos();
+	EndPos = CUtil::RandomVector3F(-80, 80);
+	Dir = StartPos.Direction(EndPos);
+
+	st_CTS_MoveStart req;
+	req.pos = StartPos;
+	req.goal = EndPos;
+	req.dir = Dir;
+
+	CPacket packet;
+	packet << req;
+
+	pClient->SendEnqueuePacket((*packet.GetBufferPtr()), &packet);
+	
+	return true;
+}
+
+bool st_Schedule_MoveStart::DoSchedule(CClient* pClient)
+{
+	double time = CUtil::GetQPCNowTime();
+	
+	if (pClient->GetState() == ESTATE::IDEL)
+	{
+		return false;
+	}
+	else if (pClient->GetState() == ESTATE::MOVE_START)
+	{
+		pClient->SetState(ESTATE::MOVE_ING);
+		StartTime = time;
+		UpdateTime = time;
+	}
+	else if (pClient->GetState() == ESTATE::MOVE_STOP)
+	{
+		pClient->Arrive(EndPos);
+		pClient->SetState(ESTATE::IDEL);
+		return true;
+	}
+	double frame = (time - UpdateTime) / FIXED_DELTA;
+
+
+	float speed = pClient->GetSpeed() * FIXED_DELTA * frame;
+
+	float speedDx = Dir.X * speed;
+	float speedDy = Dir.Y * speed;
+	float speedDz = Dir.Z * speed;
+
+	float speeddist = speed * speed;
+	float remaindist = StartPos.DistanceToNSquared(EndPos);
+
+	// Test 를 위해서 넘어가도 계속 더한다
+	//if (remaindist <= speeddist)
+	//	pClient->Arrive(EndPos);
+	
+	pClient->AddPos({ speedDx, speedDy, speedDz });
+
+	UpdateTime = CUtil::GetQPCNowTime();
+	return false;
+}
+
+bool st_Schedule_MoveStop::DoInitRunSchedule(CClient* pClient)
+{
+	StopPos = pClient->GetPos();
+
+	st_CTS_MoveStop req;
+	req.pos = StopPos;
+
+	CPacket packet;
+	packet << req;
+
+	pClient->SendEnqueuePacket((*packet.GetBufferPtr()), &packet);
+	return true;
+}
+
+bool st_Schedule_MoveStop::DoSchedule(CClient* pClient)
+{
 	return false;
 }
