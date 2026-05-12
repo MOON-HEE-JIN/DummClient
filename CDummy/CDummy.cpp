@@ -103,53 +103,11 @@ void CDummy::LogClientLatencyTime()
 	}
 }
 
-unsigned __stdcall CDummy::RunThread(void* arg)
-{
-	CDummy* pThis = static_cast<CDummy*>(arg);
-
-	pThis->Run();
-
-	return 0;
-}
-
-int CDummy::Run()
-{
-	CreateDummyClient();
-	while(m_bRun)
-	{
-		//1000 Frames 1초당 1000 처리
-		int ret = WaitForSingleObject(m_hExitEvent, 1);
-
-		// 종료 이벤트
-		if (ret == WAIT_OBJECT_0)
-			break;
-
-		Update();
-	}
-	return 0;
-}
-
 void CDummy::Init(int channel, int zone, CSchedule* pSchedule)
 {
 	m_iDummyChannel = channel;
 	m_iDummyZone = zone;
 	m_pSchedule = pSchedule;
-}
 
-void CDummy::Start()
-{
-	m_bRun = true;
-	m_hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	m_hThread = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
-}
-
-void CDummy::Wait()
-{
-	WaitForSingleObject(m_hThread, INFINITE);
-}
-
-void CDummy::Stop()
-{
-	m_bRun = false;
-	SetEvent(m_hExitEvent);
+	CreateDummyClient();
 }
