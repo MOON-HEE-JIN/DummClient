@@ -26,15 +26,21 @@ CClient::CClient(int Dummyid, int id)
 	m_iSendDelay = 3 * 1000; // 3초
 	m_iSendTime = 0;
 
+	m_iCompleteScheduleCount.store(0);
 	m_dLatencyTime.store(0);
+
+	m_fMoveSpeed = 5.0f;
+
+	m_eState = ESTATE::IDEL;
+	
 }
 
 void CClient::OnRecv(int type, CPacket& cPacket, double recvtime)
 {
 	double sendtime = PopSendTime(type);
 
-	m_PacketPool.Enqueue({ type, cPacket });
-
+	m_queue.Push({ type, cPacket });
+	
 	if (sendtime == -1)
 		return;
 
@@ -57,6 +63,8 @@ void CClient::SetSchedule(CSchedule* pSchedule)
 	if (m_pWorkSchedule != nullptr)
 		delete m_pWorkSchedule;
 
+	m_pWorkSchedule = nullptr;
+
 	SetFirstSchedule();
 }
 
@@ -64,9 +72,15 @@ void CClient::SetWorkSchedule(st_Schedule* pSchedule)
 {
 	if (pSchedule == nullptr)
 	{
+		if (m_pWorkSchedule != nullptr)
+			delete m_pWorkSchedule;
 		m_pWorkSchedule = nullptr;
 		return;
 	}
+
+	// 기존 스케쥴 제거
+	if (m_pWorkSchedule != nullptr)
+		delete m_pWorkSchedule;
 
 	m_pWorkSchedule = pSchedule;
 	m_pWorkSchedule->DoInitRunSchedule(this);
@@ -88,8 +102,6 @@ void CClient::SetFirstSchedule()
 	if (m_pSchedule == nullptr)
 		return;
 
-	st_Schedule* pPrevSchedule = m_pWorkSchedule;
-
 	switch (m_pSchedule->GetSchedule(0))
 	{
 	case SCHEDULE_TYPE_LOGIN:
@@ -99,9 +111,6 @@ void CClient::SetFirstSchedule()
 		g_LogDummy.ELog("ERROR Invalid Schedule Type : %d", m_pSchedule->GetSchedule(0));
 		break;
 	}
-
-	if (pPrevSchedule != nullptr)
-		delete pPrevSchedule;
 }
 
 void CClient::NextSchedule()
@@ -109,6 +118,8 @@ void CClient::NextSchedule()
 	if (m_pSchedule == nullptr)
 		return;
 
+	AddCompleteScheduleCount();
+	
 	m_iWorkScheduleRogress++;
 
 	if (m_iWorkScheduleRogress >= m_pSchedule->GetSize())
@@ -116,8 +127,6 @@ void CClient::NextSchedule()
 		m_iWorkScheduleLoop++;
 		m_iWorkScheduleRogress = m_pSchedule->GetLogicScheduleIndex();
 	}
-
-	st_Schedule* pPrevSchedule = m_pWorkSchedule;
 
 	switch (m_pSchedule->GetSchedule(m_iWorkScheduleRogress))
 	{
@@ -133,13 +142,13 @@ void CClient::NextSchedule()
 	case SCHEDULE_TYPE_RETURN_ZONE:
 		SetWorkSchedule(new st_Schedule_ReturnZone());
 		break;
+	case SCHEDULE_TYPE_MOVE_START:
+		SetWorkSchedule(new st_Schedule_MoveStart());
+		break;
 	default:
 		SetWorkSchedule(nullptr);
 		break;
 	}
-
-
-	delete pPrevSchedule;
 }
 
 void CClient::Clear()
@@ -150,10 +159,14 @@ void CClient::Clear()
 
 void CClient::Update()
 {
-	RECV_JOB job;
-	while (m_PacketPool.TryDequeue(job))
+	std::vector<RECV_JOB> jobs;
+	m_queue.PopVector(jobs);
+
+	int Loop = jobs.size();
+	for (int i = 0; i < Loop; i++)
 	{
-		g_cPacketProc.DO_GAME_Proc(job.type, this, job.cPacket);
+		g_cPacketProc.DO_GAME_Proc(jobs[i].type, this, jobs[i].cPacket);
+
 	}
 
 	if (m_iSendTime + m_iSendDelay < GetTickCount())

@@ -2,6 +2,8 @@
 #include <string>
 #include "CUtill/CPacket.h"
 #define ProcThreadCnt 3
+#define FIXED_DELTA 0.01667f
+
 
 typedef struct st_Log
 {
@@ -22,14 +24,11 @@ typedef struct st_Job
 
 	st_Job() : type(0) {};
 	st_Job(int _type, CPacket& _packet) :type(_type), cPacket(_packet) {};
-	st_Job& operator=(st_Job&& job) noexcept
-	{
-		if (this != &job)
-		{
-			type = job.type;
-			cPacket = job.cPacket;
-		}
-		return *this;
-	}
+	
+	st_Job(const st_Job&) = default;
+	st_Job& operator=(const st_Job&) = default;
+
+	st_Job(st_Job&&) noexcept = default;
+	st_Job& operator=(st_Job&&) noexcept = default;
 
 }RECV_JOB;

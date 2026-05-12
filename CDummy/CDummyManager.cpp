@@ -1,5 +1,6 @@
 ﻿#include "CDummyManager.h"
 #include "../Test/TSchedule_Change_Zone.h"
+#include "../Test/TSchedule_Move.h"
 
 CDummyManager g_DummyManager;
 
@@ -12,6 +13,7 @@ CDummyManager::CDummyManager()
     m_sPort = 7799;
 
     m_vecSchedules.push_back(new TSchedule_Change_Zone());
+    m_vecSchedules.push_back(new TSchedule_Move());
 
     InitializeCriticalSection(&cs);
 }
@@ -33,16 +35,8 @@ bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleTy
     m_iClientID += count;
 
     m_mapDummys[ID] = pDummy;
-    switch (scheduleType)
-    {
-    case SCHEDULE_TEST_TYPE::SCHEDULE_RETURN_ZONE:
-        pDummy->Init(channel, zone, m_vecSchedules[scheduleType]);
-        break;
-    case SCHEDULE_TEST_TYPE::SCHEDULE_MOVE:
-        break;
-    default:
-        return false;
-    }
+    
+    pDummy->Init(channel, zone, m_vecSchedules[scheduleType]);
 
     pDummy->Start();
     return true;

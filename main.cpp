@@ -17,7 +17,7 @@ void main()
 	{
 		for (int zone = 1; zone <= 6; zone++)
 		{
-			g_DummyManager.CreateDummy(channel, zone, 50, SCHEDULE_TEST_TYPE::SCHEDULE_RETURN_ZONE);
+			g_DummyManager.CreateDummy(channel, zone, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_MOVE);
 		}
 	}
 

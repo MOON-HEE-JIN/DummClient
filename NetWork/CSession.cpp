@@ -57,7 +57,10 @@ double CSession::PopSendTime(int type)
 	else
 	{
 		if (m_mapSendTime[type].empty())
+		{
+			LeaveCriticalSection(&m_csSendTime);
 			return -1;
+		}
 		ret = m_mapSendTime[type].front();
 		m_mapSendTime[type].pop();
 	}
