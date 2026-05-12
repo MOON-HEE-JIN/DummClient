@@ -31,9 +31,16 @@ private:
 public:
 	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
 
+	int m_iDelayLatencyTime;
+	int m_iLatencyTime;
+
+public:
+	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
+
 private:
 	void CreateDummyClient();
 	void ReleaseDummyClient();
+	void LogClientLatencyTime();
 
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);

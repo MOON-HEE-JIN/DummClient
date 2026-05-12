@@ -20,14 +20,14 @@ CDummyManager::CDummyManager()
     m_vecThreadDummyClientCount.resize(5);
     m_vecThreadLock.resize(5);
 
+    m_hExit = CreateEvent(NULL, TRUE, FALSE, NULL);
+  
     for (int i = 0; i < 5; i++)
     {
         m_vecDummyThreadHandles[i] = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
         m_vecThreadDummyClientCount[i] = 0;
         m_vecThreadLock[i] = new st_ThreadLock();
     }
-
-    m_hExit = CreateEvent(NULL, TRUE, FALSE, NULL);
 }
 
 CDummyManager::~CDummyManager()
