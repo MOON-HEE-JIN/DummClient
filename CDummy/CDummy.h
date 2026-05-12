@@ -28,6 +28,8 @@ private:
 	
 	HANDLE m_hThread;
 	HANDLE m_hExitEvent;
+public:
+	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
 
 	int m_iDelayLatencyTime;
 	int m_iLatencyTime;
@@ -39,14 +41,8 @@ private:
 	void CreateDummyClient();
 	void ReleaseDummyClient();
 	void LogClientLatencyTime();
-	void Update();
 
-	static unsigned __stdcall RunThread(void* arg);		// accept() Thread
-	int Run();
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
-
-	void Start();
-	void Wait();
-	void Stop();
+	void Update();
 };

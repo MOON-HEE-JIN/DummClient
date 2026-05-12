@@ -191,9 +191,6 @@
     <ClCompile Include="Scheduling\CSchedule.cpp">
       <Filter>소스 파일\Scheduling</Filter>
     </ClCompile>
-    <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
-      <Filter>소스 파일\TestSchedule</Filter>
-    </ClCompile>
     <ClCompile Include="CUtill\CBinFile.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
