@@ -34,14 +34,8 @@ public:
 private:
 	void CreateDummyClient();
 	void ReleaseDummyClient();
-	void Update();
 
-	static unsigned __stdcall RunThread(void* arg);		// accept() Thread
-	int Run();
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
-
-	void Start();
-	void Wait();
-	void Stop();
+	void Update();
 };

@@ -1,5 +1,6 @@
 ﻿#include "CDummyManager.h"
 #include "../Test/TSchedule_Change_Zone.h"
+#include "../Log/CLog.h"
 
 CDummyManager g_DummyManager;
 
@@ -14,15 +15,35 @@ CDummyManager::CDummyManager()
     m_vecSchedules.push_back(new TSchedule_Change_Zone());
 
     InitializeCriticalSection(&cs);
+
+    m_vecDummyThreadHandles.resize(5);
+    m_vecThreadDummyClientCount.resize(5);
+    m_vecThreadLock.resize(5);
+
+    for (int i = 0; i < 5; i++)
+    {
+        m_vecDummyThreadHandles[i] = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
+        m_vecThreadDummyClientCount[i] = 0;
+        m_vecThreadLock[i] = new st_ThreadLock();
+    }
+
+    m_hExit = CreateEvent(NULL, TRUE, FALSE, NULL);
 }
 
 CDummyManager::~CDummyManager()
 {
-    std::map<int, CDummy*>::iterator biter = m_mapDummys.begin();
-    std::map<int, CDummy*>::iterator eiter = m_mapDummys.end();
-    for (biter; biter != eiter; ++biter)
+    m_bRun = false;
+    
+    int waitthreadcount = m_vecDummyThreadHandles.size();
+    for (int i = 0; i < waitthreadcount; i++)
+        SetEvent(m_hExit);
+
+    WaitForMultipleObjects(waitthreadcount, m_vecDummyThreadHandles.data(), true, INFINITE);
+
+    int Loop = m_vecThreadLock.size();
+    for (int i = 0; i < Loop; i++)
     {
-        biter->second->Wait();
+        delete m_vecThreadLock[i];
     }
 }
 
@@ -43,8 +64,8 @@ bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleTy
     default:
         return false;
     }
-
-    pDummy->Start();
+    
+    RegisterThread(pDummy);
     return true;
 }
 
@@ -55,25 +76,77 @@ void CDummyManager::AddDummyClient(CClient* pClient)
     LeaveCriticalSection(&cs);
 }
 
-void CDummyManager::ReleaseDummy(int dummyID)
+
+unsigned __stdcall CDummyManager::RunThread(void* arg)
 {
-    if (m_mapDummys.find(dummyID) == m_mapDummys.end())
-        return;
+    CDummyManager* p = (CDummyManager*)arg;
+    static int staticID = 0;
 
-    const std::vector<CClient*>& vec = m_mapDummys[dummyID]->GetDummyClients();
+    int ThreadID = staticID++;
 
-    EnterCriticalSection(&cs);
-    for (int i = 0; i < vec.size(); i++)
+    p->Run(ThreadID);
+
+    return 0;
+}
+
+void CDummyManager::Run(const int id)
+{
+    int ret;
+    std::vector<CDummy*> vec;
+    while (m_bRun)
     {
-        if (m_mapDummyClients.find(vec[i]->GetID()) == m_mapDummyClients.end())
-            continue;
+        ret = WaitForSingleObject(m_hExit, 1);
 
-        m_mapDummyClients.erase(vec[i]->GetID());
+        if (ret == WAIT_OBJECT_0)
+            break;
+
+        if (m_vecThreadLock[id]->bChange.load())
+        {
+            m_vecThreadLock[id]->bChange.store(false);
+            m_vecThreadLock[id]->Lock();
+            vec = m_mapThreadDummy[id];    // 복사해서 가져오기
+            m_vecThreadLock[id]->UnLock();
+        }
+        
+        int Loop = vec.size();
+        for (int i = 0; i < Loop; i++)
+            vec[i]->Update();
     }
-    LeaveCriticalSection(&cs);
+}
 
-    m_mapDummys[dummyID]->Stop();
+void CDummyManager::RegisterThread(CDummy* pDummy)
+{
+    // 개수 체크 부터
+    bool bNew = true;
+    
+    int clientcount = pDummy->GetDummyClients().size();
+    int Loop = m_vecThreadDummyClientCount.size();
+    int registerId;
+    for (int i = 0; i < Loop; i++)
+    {
+        if (m_vecThreadDummyClientCount[i] + clientcount < THREAD_CLIENT_COUNT)
+        {
+            registerId = i;
+            bNew = false;
+            break;
+        }
+    }
 
-    m_mapDummys.erase(dummyID);
+    if (bNew)
+    {
+        m_vecDummyThreadHandles.push_back((HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL));
+        m_vecThreadDummyClientCount.push_back(0);
+        m_mapThreadDummy[Loop].push_back(pDummy);
+        m_vecThreadLock.push_back(new st_ThreadLock());
+        m_vecThreadLock.back()->bChange.store(true);
+    }
+    else
+    {
+        m_vecThreadDummyClientCount[registerId] += clientcount;
+        m_vecThreadLock[registerId]->Lock();
+        m_mapThreadDummy[registerId].push_back(pDummy);
+        m_vecThreadLock[registerId]->UnLock();
+        m_vecThreadLock[registerId]->bChange.store(true);
+    }
 }
 
