@@ -52,6 +52,7 @@ private:
 	ESTATE m_eState;
 	st_Vector3F m_stPos;
 	float m_fMoveSpeed;
+	__int64 m_ddRecvLoopData;
 
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
@@ -66,6 +67,8 @@ private:
 	void Clear();
 public:
 	void SetChangeZone(int channel, int zoneID) { m_iZoneID = zoneID; m_iChannel = channel; }
+	void SetState(ESTATE state) { m_eState = state; }
+	void SetRecvLoopBack(__int64 value) { m_ddRecvLoopData = value; }
 
 	bool GetLogin() { return m_bLogin; }
 	int GetID() { return m_iID; }
@@ -77,12 +80,10 @@ public:
 	double GetLatency() { return m_dLatencyTime.load(); }
 	float GetSpeed() { return m_fMoveSpeed; }
 	int GetCompleteScheduleCount() { return m_iCompleteScheduleCount.load(); }
+	__int64 GetRecvLoopBack() { return m_ddRecvLoopData; }
 
 	st_Vector3F GetPos() { return m_stPos; }
 	ESTATE GetState() { return m_eState; }
-
-public:
-	void SetState(ESTATE state) { m_eState = state; }
 
 public:
 	void AddCompleteScheduleCount() { m_iCompleteScheduleCount.fetch_add(1); }

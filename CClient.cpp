@@ -145,6 +145,9 @@ void CClient::NextSchedule()
 	case SCHEDULE_TYPE_MOVE_START:
 		SetWorkSchedule(new st_Schedule_MoveStart());
 		break;
+	case SCHEDULE_TYPE_LOOPBACK:
+		SetWorkSchedule(new st_Schedule_LoopBack());
+		break;
 	default:
 		SetWorkSchedule(nullptr);
 		break;

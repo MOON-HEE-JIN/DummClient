@@ -205,3 +205,23 @@ bool st_Schedule_MoveStop::DoSchedule(CClient* pClient)
 {
 	return false;
 }
+
+bool st_Schedule_LoopBack::DoInitRunSchedule(CClient* pClient)
+{
+	data = CUtil::Random(0, 100000);
+	st_CTS_LoopBack req;
+	req.data = static_cast<double>(data);
+
+	CPacket cPacket;
+	cPacket << req;
+	pClient->SendEnqueuePacket((*cPacket.GetBufferPtr()), &cPacket);
+
+	return true;
+}
+
+bool st_Schedule_LoopBack::DoSchedule(CClient* pClient)
+{
+	if (pClient->GetRecvLoopBack() == data)
+		return true;
+	return false;
+}

@@ -44,6 +44,9 @@ private:
 	short m_sPort;
 	bool m_bRun = true;
 
+	int m_iDelayLatencyTime = 1 * 1000;
+	int m_iLatencyTime = 0;
+
 	std::vector<CSchedule*> m_vecSchedules;
 
 	CRITICAL_SECTION cs;
