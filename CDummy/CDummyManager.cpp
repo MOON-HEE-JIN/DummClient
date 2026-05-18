@@ -111,12 +111,14 @@ void CDummyManager::Run(const int id)
         for (int i = 0; i < Loop; i++)
         {
             vec[i]->Update();
-            maxTime = vec[i]->GetMaxTime();
-            minTime = vec[i]->GetMinTime();
-            avgTime = vec[i]->GetAvgTime();
-            maxComplete = vec[i]->GetMaxComplete();
-            minComplete = vec[i]->GetMinComplete();
+            maxTime = max(maxTime, vec[i]->GetMaxTime());
+            minTime = min(minTime, vec[i]->GetMinTime());
+            avgTime += vec[i]->GetAvgTime();
+            maxComplete = max(maxComplete, vec[i]->GetMaxComplete());
+            minComplete = min(minComplete, vec[i]->GetMinComplete());
         }
+        avgTime /= Loop;
+
         if (Loop > 0)
         {
             if (m_iLatencyTime + m_iDelayLatencyTime > GetTickCount())

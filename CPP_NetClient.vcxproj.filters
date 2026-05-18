@@ -159,6 +159,9 @@
     <ClInclude Include="Test\TSchedule_LoopBack.h">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClInclude>
+    <ClInclude Include="Test\TSchedule_MainWorldSetTile.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">

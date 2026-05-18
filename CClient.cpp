@@ -23,7 +23,7 @@ CClient::CClient(int Dummyid, int id)
 	m_iWorkScheduleRogress = 0;
 	m_pWorkSchedule = nullptr;
 
-	m_iSendDelay = 3 * 1000; // 3초
+	m_iSendDelay = CUtil::Random(2, 30) * 1000;//3 * 1000; // 3초
 	m_iSendTime = 0;
 
 	m_iCompleteScheduleCount.store(0);
