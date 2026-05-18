@@ -8,6 +8,16 @@
 
 int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 {
+	st_STC_LoopBack res;
+	pReqPacket >> res;
+
+	if (res.ret != 0)
+		pTarget->SetRecvLoopBack(-1);
+	else
+		pTarget->SetRecvLoopBack(res.data);
+
+	res.ret;
+	res.data;
 	return 0;
 }
 

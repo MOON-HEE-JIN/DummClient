@@ -120,6 +120,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,6 +161,8 @@
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
+    <ClInclude Include="Test\TSchedule_LoopBack.h" />
+    <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
     <ClInclude Include="Test\TSchedule_Move.h" />
     <ClInclude Include="Zone\CBinVoxel.h" />
     <ClInclude Include="Zone\CBinZone.h" />
@@ -189,6 +192,7 @@
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
+    <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
     <ClCompile Include="Test\TSchedule_Move.cpp" />
     <ClCompile Include="Zone\CBinVoxel.cpp" />
     <ClCompile Include="Zone\CBinZone.cpp" />

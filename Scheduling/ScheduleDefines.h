@@ -8,6 +8,7 @@ enum ESCHEDULE_TEST_TYPE
 {
 	SCHEDULE_RETURN_ZONE,
 	SCHEDULE_MOVE,
+	SCHEDULE_LOOPBACK,
 };
 
 enum ESCHEDULE_TYPE
@@ -19,6 +20,7 @@ enum ESCHEDULE_TYPE
 	SCHEDULE_TYPE_RETURN_ZONE,
 	SCHEDULE_TYPE_MOVE_START,
 	SCHEDULE_TYPE_MOVE_STOP,
+	SCHEDULE_TYPE_LOOPBACK,
 };
 
 struct st_Schedule
@@ -114,6 +116,20 @@ struct st_Schedule_MoveStop : public st_Schedule
 		: st_Schedule(SCHEDULE_TYPE_MOVE_STOP)
 	{
 
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_LoopBack : public st_Schedule
+{
+	__int64 data;
+	
+	st_Schedule_LoopBack()
+		: st_Schedule(SCHEDULE_TYPE_LOOPBACK)
+	{
+		data = 0;
 	}
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;

@@ -23,7 +23,7 @@ CClient::CClient(int Dummyid, int id)
 	m_iWorkScheduleRogress = 0;
 	m_pWorkSchedule = nullptr;
 
-	m_iSendDelay = 3 * 1000; // 3초
+	m_iSendDelay = CUtil::Random(2, 30) * 1000;//3 * 1000; // 3초
 	m_iSendTime = 0;
 
 	m_iCompleteScheduleCount.store(0);
@@ -144,6 +144,9 @@ void CClient::NextSchedule()
 		break;
 	case SCHEDULE_TYPE_MOVE_START:
 		SetWorkSchedule(new st_Schedule_MoveStart());
+		break;
+	case SCHEDULE_TYPE_LOOPBACK:
+		SetWorkSchedule(new st_Schedule_LoopBack());
 		break;
 	default:
 		SetWorkSchedule(nullptr);
