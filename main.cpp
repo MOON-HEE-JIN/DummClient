@@ -17,14 +17,14 @@ void main()
 	{
 		for (int zone = 2; zone < 7; zone++)
 		{
-			g_DummyManager.CreateDummy(channel, zone, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_MOVE);
-			g_DummyManager.CreateDummy(channel, zone, 200, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
-			Sleep(1000); // Dummy 생성 대기
+			//g_DummyManager.CreateDummy(channel, zone, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_MOVE);
+			//g_DummyManager.CreateDummy(channel, zone, 200, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
+			//Sleep(1000); // Dummy 생성 대기
 		}
 	}
 	
-
-	g_DummyManager.CreateDummy(0, 1, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
+	g_DummyManager.CreateDummy(0, 1, 16 * 16, ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD);
+	//g_DummyManager.CreateDummy(0, 1, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 	//g_DummyManager.CreateDummy(1, 1, 150, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 	//g_DummyManager.CreateDummy(2, 1, 150, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 

@@ -52,16 +52,6 @@ int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 	return 0;
 }
 
-int CPacketProc::DO_GAME_CREATECHAR(CClient* pTarget, CPacket& pReqPacket)
-{
-	return 0;
-}
-
-int CPacketProc::DO_GAME_LEAVEZONE(CClient* pTarget, CPacket& pReqPacket)
-{
-	return 0;
-}
-
 int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 {
 	st_STC_ConnectInfo res;
@@ -72,11 +62,6 @@ int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 
 	g_DummyManager.AddDummyClient(pTarget);
 
-	return 0;
-}
-
-int CPacketProc::DO_GAME_ENTERZONE(CClient* pTarget, CPacket& pReqPacket)
-{
 	return 0;
 }
 
@@ -130,6 +115,44 @@ int CPacketProc::DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket)
 
 	int ret = res.ret;
 	int type = res.type;
+	return 0;
+}
+
+int CPacketProc::DO_GAME_TELEPORT(CClient* pTarget, CPacket& pReqPacket)
+{
+	st_STC_Teleport res;
+	pReqPacket >> res;
+
+	if (res.ret == 0)
+	{
+		const st_Schedule* pSchedule = pTarget->GetWorkSchedule();
+		if (pSchedule == nullptr)
+			return 0;
+		if (pSchedule->GetType() != ESCHEDULE_TYPE::SCHEDULE_TYPE_TELEPORT)
+			return 0;
+
+		pTarget->Arrive(((st_Schedule_Teleport*)pSchedule)->GoalPos);
+	}
+	return 0;
+}
+
+int CPacketProc::DO_GAME_AOI_IN_PLAYER(CClient* pTarget, CPacket& pReqPacket)
+{
+	return 0;
+}
+
+int CPacketProc::DO_GAME_AOI_IN_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
+{
+	return 0;
+}
+
+int CPacketProc::DO_GAME_AOI_OUT_PLAYER(CClient* pTarget, CPacket& pReqPacket)
+{
+	return 0;
+}
+
+int CPacketProc::DO_GAME_AOI_OUT_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
+{
 	return 0;
 }
 

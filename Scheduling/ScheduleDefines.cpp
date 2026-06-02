@@ -225,3 +225,34 @@ bool st_Schedule_LoopBack::DoSchedule(CClient* pClient)
 		return true;
 	return false;
 }
+
+bool st_Schedule_Teleport::DoInitRunSchedule(CClient* pClient)
+{
+	st_CTS_Teleport req;
+	req.pos = GoalPos;
+
+	CPacket cPacket;
+	cPacket << req;
+
+	pClient->SendEnqueuePacket((*cPacket.GetBufferPtr()), &cPacket);
+
+	return true;
+}
+
+bool st_Schedule_Teleport::DoSchedule(CClient* pClient)
+{
+	if (pClient->GetPos() == GoalPos)
+		return true;
+	return false;
+}
+
+bool st_Schedule_Delay::DoInitRunSchedule(CClient* pClient)
+{
+	return true;
+}
+
+bool st_Schedule_Delay::DoSchedule(CClient* pClient)
+{
+	// 일단 그냥 대기만 넣기
+	return false;
+}

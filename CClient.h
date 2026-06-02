@@ -57,7 +57,7 @@ private:
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
 	void SetSchedule(CSchedule* pSchedule);
-
+	int GetScheduleType();
 private:
 	void SetWorkSchedule(st_Schedule* pSchedule);
 	void CheckSchedule();
@@ -81,7 +81,7 @@ public:
 	float GetSpeed() { return m_fMoveSpeed; }
 	int GetCompleteScheduleCount() { return m_iCompleteScheduleCount.load(); }
 	__int64 GetRecvLoopBack() { return m_ddRecvLoopData; }
-
+	const st_Schedule* GetWorkSchedule() { return m_pWorkSchedule; }
 	st_Vector3F GetPos() { return m_stPos; }
 	ESTATE GetState() { return m_eState; }
 

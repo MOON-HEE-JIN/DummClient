@@ -164,6 +164,7 @@
     <ClInclude Include="Test\TSchedule_LoopBack.h" />
     <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
     <ClInclude Include="Test\TSchedule_Move.h" />
+    <ClInclude Include="Test\TSchedule_PlaceMainworld.h" />
     <ClInclude Include="Zone\CBinVoxel.h" />
     <ClInclude Include="Zone\CBinZone.h" />
     <ClInclude Include="Zone\CBinZoneIdx.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
     <ClCompile Include="Test\TSchedule_Move.cpp" />
+    <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp" />
     <ClCompile Include="Zone\CBinVoxel.cpp" />
     <ClCompile Include="Zone\CBinZone.cpp" />
     <ClCompile Include="Zone\CBinZoneIdx.cpp" />

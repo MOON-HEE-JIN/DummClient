@@ -81,3 +81,10 @@ struct st_Vector3F
 		return !(*this == other);
 	}
 };
+
+struct st_Vector3L
+{
+	double X;
+	double Y;
+	double Z;
+};

@@ -2,6 +2,7 @@
 #include "../Test/TSchedule_Change_Zone.h"
 #include "../Test/TSchedule_Move.h"
 #include "../Test/TSchedule_LoopBack.h"
+#include "../Test/TSchedule_PlaceMainworld.h"
 #include "../Log/CLog.h"
 
 CDummyManager g_DummyManager;
@@ -17,6 +18,9 @@ CDummyManager::CDummyManager()
     m_vecSchedules.push_back(new TSchedule_Change_Zone());
     m_vecSchedules.push_back(new TSchedule_Move());
     m_vecSchedules.push_back(new TSchedule_LoopBack());
+    CSchedule* pSchedule = new TSchedule_PlaceMainWorld();
+    ((TSchedule_PlaceMainWorld*)pSchedule)->Init(1024, 1024, 4, 4);
+    m_vecSchedules.push_back(pSchedule);
 
     InitializeCriticalSection(&cs);
 

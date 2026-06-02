@@ -4,6 +4,9 @@
 #include "CDummy/CDummy.h"
 #include "CDummy/DummyDef.h"
 #include "Log/CLog.h"
+
+#include "Test/TSchedule_PlaceMainworld.h"
+
 static CPacketProc g_cPacketProc;
 
 CClient::CClient(int Dummyid, int id)
@@ -23,7 +26,7 @@ CClient::CClient(int Dummyid, int id)
 	m_iWorkScheduleRogress = 0;
 	m_pWorkSchedule = nullptr;
 
-	m_iSendDelay = CUtil::Random(2, 30) * 1000;//3 * 1000; // 3초
+	m_iSendDelay = 3 * 100;// CUtil::Random(2, 30) * 1000;//3 * 1000; // 3초
 	m_iSendTime = 0;
 
 	m_iCompleteScheduleCount.store(0);
@@ -66,6 +69,13 @@ void CClient::SetSchedule(CSchedule* pSchedule)
 	m_pWorkSchedule = nullptr;
 
 	SetFirstSchedule();
+}
+
+int CClient::GetScheduleType()
+{
+	if (m_pSchedule == nullptr)
+		return 0;
+	return m_pSchedule->GetType();
 }
 
 void CClient::SetWorkSchedule(st_Schedule* pSchedule)
@@ -147,6 +157,19 @@ void CClient::NextSchedule()
 		break;
 	case SCHEDULE_TYPE_LOOPBACK:
 		SetWorkSchedule(new st_Schedule_LoopBack());
+		break;
+	case SCHEDULE_TYPE_TELEPORT:
+	{
+		st_Schedule_Teleport* pSchedule = new st_Schedule_Teleport();
+		if (GetScheduleType() == SCHEDULE_MAIN_WORLD)
+		{
+			pSchedule->GoalPos = ((TSchedule_PlaceMainWorld*)m_pSchedule)->GetPos();
+		}
+		SetWorkSchedule(pSchedule);
+	}
+		break;
+	case SCHEDULE_TYPE_DELAY:
+		SetWorkSchedule(new st_Schedule_Delay());
 		break;
 	default:
 		SetWorkSchedule(nullptr);
