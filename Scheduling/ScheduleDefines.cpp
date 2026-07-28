@@ -253,6 +253,19 @@ bool st_Schedule_Delay::DoInitRunSchedule(CClient* pClient)
 
 bool st_Schedule_Delay::DoSchedule(CClient* pClient)
 {
-	// 일단 그냥 대기만 넣기
+	if (bInit == false)
+	{
+		StartTime = CUtil::GetQPCNowTime();
+		bInit = true;
+	}
+	else
+	{
+		if (DelayTime != -1)
+		{
+			double time = CUtil::GetQPCNowTime();
+			if (time - StartTime >= DelayTime)
+				return true;
+		}
+	}
 	return false;
 }

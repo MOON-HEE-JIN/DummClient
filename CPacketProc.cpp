@@ -156,3 +156,8 @@ int CPacketProc::DO_GAME_AOI_OUT_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 	return 0;
 }
 
+int CPacketProc::DO_GAME_OTHERMOVESTART(CClient* pTarget, CPacket& pReqPacket)
+{
+	return 0;
+}
+

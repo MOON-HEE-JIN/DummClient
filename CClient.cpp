@@ -4,6 +4,7 @@
 #include "CDummy/CDummy.h"
 #include "CDummy/DummyDef.h"
 #include "Log/CLog.h"
+#include "CDummy/CDummyManager.h"
 
 #include "Test/TSchedule_PlaceMainworld.h"
 
@@ -26,7 +27,7 @@ CClient::CClient(int Dummyid, int id)
 	m_iWorkScheduleRogress = 0;
 	m_pWorkSchedule = nullptr;
 
-	m_iSendDelay = 3 * 100;// CUtil::Random(2, 30) * 1000;//3 * 1000; // 3초
+	m_iSendDelay = CUtil::Random(5, 10) * 100;
 	m_iSendTime = 0;
 
 	m_iCompleteScheduleCount.store(0);
@@ -161,10 +162,12 @@ void CClient::NextSchedule()
 	case SCHEDULE_TYPE_TELEPORT:
 	{
 		st_Schedule_Teleport* pSchedule = new st_Schedule_Teleport();
-		if (GetScheduleType() == SCHEDULE_MAIN_WORLD)
-		{
-			pSchedule->GoalPos = ((TSchedule_PlaceMainWorld*)m_pSchedule)->GetPos();
-		}
+		
+		TSchedule_PlaceMainWorld* pS = dynamic_cast<TSchedule_PlaceMainWorld*>(g_DummyManager.GetSchedule(ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD));
+		
+		if (pS)
+			pSchedule->GoalPos = pS->GetPos();
+
 		SetWorkSchedule(pSchedule);
 	}
 		break;

@@ -10,7 +10,7 @@ enum ESCHEDULE_TEST_TYPE
 	SCHEDULE_MOVE,
 	SCHEDULE_LOOPBACK,
 	SCHEDULE_MAIN_WORLD,
-	SCHEDULE_MAIN_WORLD_PAINT,
+	SCHEDULE_END,
 };
 
 enum ESCHEDULE_TYPE
@@ -157,11 +157,15 @@ struct st_Schedule_Teleport : public st_Schedule
 
 struct st_Schedule_Delay : public st_Schedule
 {
+	int StartTime;
 	int DelayTime;
+	bool bInit;
 	st_Schedule_Delay()
 		: st_Schedule(SCHEDULE_TYPE_DELAY)
 	{
+		StartTime = 0;
 		DelayTime = -1; // -1 은 무한 대기
+		bInit = false;
 	}
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;

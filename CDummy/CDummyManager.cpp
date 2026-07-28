@@ -15,12 +15,28 @@ CDummyManager::CDummyManager()
     memcpy(m_szIP, "127.0.0.1", 10);
     m_sPort = 7799;
 
-    m_vecSchedules.push_back(new TSchedule_Change_Zone());
-    m_vecSchedules.push_back(new TSchedule_Move());
-    m_vecSchedules.push_back(new TSchedule_LoopBack());
-    CSchedule* pSchedule = new TSchedule_PlaceMainWorld();
-    ((TSchedule_PlaceMainWorld*)pSchedule)->Init(1024, 1024, 4, 4);
-    m_vecSchedules.push_back(pSchedule);
+    m_vecSchedules.resize(ESCHEDULE_TEST_TYPE::SCHEDULE_END);
+
+    {
+        CSchedule* pSchedule = new TSchedule_Change_Zone();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_Move();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_LoopBack();
+		m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_PlaceMainWorld();
+        ((TSchedule_PlaceMainWorld*)pSchedule)->Init(1024, 1024, 4, 4);
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
 
     InitializeCriticalSection(&cs);
 

@@ -18,4 +18,5 @@ public:
 	int GetSchedule(int index) const { return m_vecSchedules[index]; }
 	int GetLogicScheduleIndex() const { return m_iLogicScheduleIndex; }
 	int GetType() { return m_iType; }
+	virtual void casting() {};
 };

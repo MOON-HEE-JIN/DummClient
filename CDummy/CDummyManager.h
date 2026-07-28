@@ -53,7 +53,8 @@ private:
 public:
 	bool CreateDummy(int channel, int zone, int count, int scheduleType);
 	void AddDummyClient(CClient* pClient);
-	
+	CSchedule* GetSchedule(int index) { return m_vecSchedules[index]; }
+
 private:
 	HANDLE m_hExit;
 	std::vector<HANDLE> m_vecDummyThreadHandles;
