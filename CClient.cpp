@@ -34,21 +34,33 @@ CClient::CClient(int Dummyid, int id)
 	m_dLatencyTime.store(0);
 
 	m_fMoveSpeed = 5.0f;
+	m_stPos = { 0.0f, 0.0f, 0.0f };
+	m_ddRecvLoopData = -1;
+	m_iTeleportResult = -1;
+	m_iAoiInTransitionCount = 0;
+	m_iAoiOutTransitionCount = 0;
 
 	m_eState = ESTATE::IDEL;
 	
 }
 
-void CClient::OnRecv(int type, CPacket& cPacket, double recvtime)
+CClient::~CClient()
 {
-	double sendtime = PopSendTime(type);
+	delete m_pWorkSchedule;
+	m_pWorkSchedule = nullptr;
+}
 
-	m_queue.Push({ type, cPacket });
+void CClient::OnRecv(int type, CPacket& cPacket, LONGLONG recvtime)
+{
+	const LONGLONG sendtime = PopSendTime(type);
+
+	m_queue.Push(RECV_JOB(type, std::move(cPacket)));
 	
 	if (sendtime == -1)
 		return;
 
-	double time = (recvtime - sendtime) * 1000 / freq.QuadPart; // ms
+	const double time = static_cast<double>(recvtime - sendtime) * 1000.0
+		/ static_cast<double>(freq.QuadPart); // ms
 	m_dLatencyTime.store(time);
 }
 
@@ -110,7 +122,7 @@ void CClient::CheckSchedule()
 
 void CClient::SetFirstSchedule()
 {
-	if (m_pSchedule == nullptr)
+	if (m_pSchedule == nullptr || m_pSchedule->GetSize() <= 0)
 		return;
 
 	switch (m_pSchedule->GetSchedule(0))
@@ -166,9 +178,23 @@ void CClient::NextSchedule()
 		TSchedule_PlaceMainWorld* pS = dynamic_cast<TSchedule_PlaceMainWorld*>(g_DummyManager.GetSchedule(ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD));
 		
 		if (pS)
-			pSchedule->GoalPos = pS->GetPos();
+			pSchedule->GoalPos = pS->GetStartPos(m_iID);
 
 		SetWorkSchedule(pSchedule);
+	}
+		break;
+	case SCHEDULE_TYPE_MAIN_WORLD_TELEPORT:
+	{
+		TSchedule_PlaceMainWorld* pS = dynamic_cast<TSchedule_PlaceMainWorld*>(
+			g_DummyManager.GetSchedule(ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD));
+		if (pS == nullptr)
+		{
+			g_LogDummy.ELog("ERROR MainWorld Schedule Client[%d]", m_iID);
+			SetWorkSchedule(nullptr);
+			break;
+		}
+
+		SetWorkSchedule(new st_Schedule_MainWorldTeleport(pS));
 	}
 		break;
 	case SCHEDULE_TYPE_DELAY:
@@ -184,6 +210,30 @@ void CClient::Clear()
 {
 	m_iServerID = 0;
 	m_bLogin = false;
+	m_iTeleportResult = -1;
+	m_visiblePlayers.clear();
+	ResetAoiTransitionCount();
+}
+
+void CClient::AddVisiblePlayer(int id)
+{
+	if (id != m_iServerID)
+	{
+		if (m_visiblePlayers.insert(id).second)
+			++m_iAoiInTransitionCount;
+	}
+}
+
+void CClient::RemoveVisiblePlayer(int id)
+{
+	if (m_visiblePlayers.erase(id) > 0)
+		++m_iAoiOutTransitionCount;
+}
+
+void CClient::ResetAoiTransitionCount()
+{
+	m_iAoiInTransitionCount = 0;
+	m_iAoiOutTransitionCount = 0;
 }
 
 void CClient::Update()
@@ -191,17 +241,16 @@ void CClient::Update()
 	std::vector<RECV_JOB> jobs;
 	m_queue.PopVector(jobs);
 
-	int Loop = jobs.size();
-	for (int i = 0; i < Loop; i++)
+	for (RECV_JOB& job : jobs)
 	{
-		g_cPacketProc.DO_GAME_Proc(jobs[i].type, this, jobs[i].cPacket);
-
+		g_cPacketProc.DO_GAME_Proc(job.type, this, job.cPacket);
 	}
 
-	if (m_iSendTime + m_iSendDelay < GetTickCount())
+	const ULONGLONG now = GetTickCount64();
+	if (m_iSendTime + static_cast<ULONGLONG>(m_iSendDelay) < now)
 	{
 		SendPost();
-		m_iSendTime = GetTickCount();
+		m_iSendTime = now;
 	}
 
 	CheckSchedule();

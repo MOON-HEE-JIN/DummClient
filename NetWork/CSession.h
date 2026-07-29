@@ -37,17 +37,18 @@ private:
 	CRITICAL_SECTION m_csSendTime;
 
 	BOOL bConnect;
+	bool m_bWsaStarted;
 private:
 	HANDLE CICP;
 protected:
 	LARGE_INTEGER freq;
 	
 	std::vector<int> m_vecEnqueueType;
-	std::map<int, std::queue<double>> m_mapSendTime;
+	std::map<int, std::queue<LONGLONG>> m_mapSendTime;
 
 	
-	void PushSendTime(int type, double time);
-	double PopSendTime(int type);
+	void PushSendTime(int type, LONGLONG time);
+	LONGLONG PopSendTime(int type);
 public:
 	int IncrementIOCnt() { return InterlockedIncrement(&IOCnt); }
 	int DecrementIOCnt() { return InterlockedDecrement(&IOCnt); }
@@ -68,7 +69,7 @@ public:
 
 	BOOL		GetConnect() { return bConnect; }
 public:
-	virtual void OnRecv(int type, CPacket& cPacket, double recvtime = 0) = 0;
+	virtual void OnRecv(int type, CPacket& cPacket, LONGLONG recvtime = 0) = 0;
 	int Connect(const char IP[16], unsigned short Port, HANDLE cicp);
 	void Clear();
 	void CloseSocket();

@@ -23,6 +23,9 @@ CPacket::CPacket()
 
 CPacket::CPacket(int size)
 {
+	if (size <= 0)
+		size = DefualtSize;
+
 	//pool.Free((PACKET_BUFFER*)buffer);
 	buffer = (char*)malloc(size);
 	WritePointer = buffer;
@@ -49,6 +52,8 @@ void CPacket::Clear()
 
 int CPacket::MoveWritePos(int size)
 {
+	if (size < 0)
+		return 0;
 	if ((WritePointer + size) > EndPointer)
 		return 0;
 	WritePointer += size;
@@ -57,6 +62,8 @@ int CPacket::MoveWritePos(int size)
 
 int CPacket::MoveReadPos(int size)
 {
+	if (size < 0)
+		return 0;
 	if ((ReadPointer + size) > WritePointer)
 		return 0;
 	ReadPointer += size;
@@ -65,6 +72,9 @@ int CPacket::MoveReadPos(int size)
 
 int CPacket::GetData(void* Dest, int size)
 {
+	if (Dest == nullptr || size < 0 || GetDataSize() < size)
+		return 0;
+
 	memcpy(Dest, ReadPointer, size);
 	MoveReadPos(size);
 	return size;
@@ -72,7 +82,7 @@ int CPacket::GetData(void* Dest, int size)
 
 int CPacket::PutData(void* Src, int size)
 {
-	if (size > m_iBufferSize - GetDataSize())
+	if (Src == nullptr || size < 0 || size > m_iBufferSize - GetDataSize())
 		return 0;
 	memcpy(WritePointer, Src, size);
 	MoveWritePos(size);
@@ -247,6 +257,20 @@ CPacket::CPacket(const CPacket& other)
 	WritePointer = buffer + (other.WritePointer - other.buffer);
 }
 
+CPacket::CPacket(CPacket&& other) noexcept
+	: buffer(other.buffer),
+	WritePointer(other.WritePointer),
+	ReadPointer(other.ReadPointer),
+	m_iBufferSize(other.m_iBufferSize),
+	EndPointer(other.EndPointer)
+{
+	other.buffer = nullptr;
+	other.WritePointer = nullptr;
+	other.ReadPointer = nullptr;
+	other.EndPointer = nullptr;
+	other.m_iBufferSize = 0;
+}
+
 // 안전한 복사 대입 연산자
 CPacket& CPacket::operator=(const CPacket& other)
 {
@@ -262,5 +286,25 @@ CPacket& CPacket::operator=(const CPacket& other)
 	EndPointer = buffer + m_iBufferSize;
 	ReadPointer = buffer + (other.ReadPointer - other.buffer);
 	WritePointer = buffer + (other.WritePointer - other.buffer);
+	return *this;
+}
+
+CPacket& CPacket::operator=(CPacket&& other) noexcept
+{
+	if (this == &other)
+		return *this;
+
+	free(buffer);
+	buffer = other.buffer;
+	WritePointer = other.WritePointer;
+	ReadPointer = other.ReadPointer;
+	m_iBufferSize = other.m_iBufferSize;
+	EndPointer = other.EndPointer;
+
+	other.buffer = nullptr;
+	other.WritePointer = nullptr;
+	other.ReadPointer = nullptr;
+	other.EndPointer = nullptr;
+	other.m_iBufferSize = 0;
 	return *this;
 }

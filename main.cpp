@@ -8,7 +8,7 @@
 #include "CDummy/CDummyManager.h"
 #include "Test/TSchedule_Change_Zone.h"
 std::vector<CDummy*> vecDummy;
-void main()
+int main()
 {
 	StartThread();
 	Sleep(1000); // NetWork Thread 시작 대기
@@ -29,4 +29,5 @@ void main()
 	//g_DummyManager.CreateDummy(2, 1, 150, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 
 	WaitThread();
+	return 0;
 }

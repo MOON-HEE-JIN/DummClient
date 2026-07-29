@@ -3,6 +3,7 @@
 #include <queue>
 #include <windows.h>
 #include <vector>
+#include <utility>
 
 template <typename T>
 class CLockQueue
@@ -21,10 +22,17 @@ private:
 	std::queue<T> m_queue;
 
 public:
-	void Push(T value)
+	void Push(const T& value)
 	{
 		EnterCriticalSection(&cs);
 		m_queue.push(value);
+		LeaveCriticalSection(&cs);
+	}
+
+	void Push(T&& value)
+	{
+		EnterCriticalSection(&cs);
+		m_queue.push(std::move(value));
 		LeaveCriticalSection(&cs);
 	}
 
@@ -36,7 +44,7 @@ public:
 			LeaveCriticalSection(&cs);
 			return false;
 		}
-		value = m_queue.front();
+		value = std::move(m_queue.front());
 		m_queue.pop();
 		LeaveCriticalSection(&cs);
 		return true;
@@ -50,10 +58,10 @@ public:
 			LeaveCriticalSection(&cs);
 			return false;
 		}
+		out.reserve(out.size() + m_queue.size());
 		while (!m_queue.empty())
 		{
-			T value = m_queue.front();
-			out.push_back(value);
+			out.push_back(std::move(m_queue.front()));
 			m_queue.pop();
 		}
 		LeaveCriticalSection(&cs);
@@ -64,7 +72,7 @@ public:
 	{
 		int size = 0;
 		EnterCriticalSection(&cs);
-		size = m_queue.size();
+		size = static_cast<int>(m_queue.size());
 		LeaveCriticalSection(&cs);
 		return size;
 	}

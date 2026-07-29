@@ -3,6 +3,7 @@
 #include "../CClient.h"
 
 class CClient;
+class TSchedule_PlaceMainWorld;
 
 enum ESCHEDULE_TEST_TYPE
 {
@@ -24,7 +25,7 @@ enum ESCHEDULE_TYPE
 	SCHEDULE_TYPE_MOVE_STOP,
 	SCHEDULE_TYPE_LOOPBACK,
 	SCHEDULE_TYPE_TELEPORT,
-	SCHEDULE_TYPE_MAIN_WORLD_UPDATE,
+	SCHEDULE_TYPE_MAIN_WORLD_TELEPORT,
 	SCHEDULE_TYPE_DELAY,
 };
 
@@ -101,12 +102,34 @@ struct st_Schedule_MoveStart : public st_Schedule
 	st_Vector3F Dir;
 	double StartTime;
 	double UpdateTime;
+	bool bStopRequested;
 
 	st_Schedule_MoveStart()
 		: st_Schedule(SCHEDULE_TYPE_MOVE_START)
 	{
 		StartTime = 0;
 		UpdateTime = 0;
+		bStopRequested = false;
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MainWorldTeleport : public st_Schedule
+{
+	TSchedule_PlaceMainWorld* pOwner;
+	st_Vector3F StartPos;
+	st_Vector3F GoalPos;
+	int Cycle;
+	bool bTeleportRequested;
+
+	st_Schedule_MainWorldTeleport(TSchedule_PlaceMainWorld* owner)
+		: st_Schedule(SCHEDULE_TYPE_MAIN_WORLD_TELEPORT),
+		pOwner(owner),
+		Cycle(0),
+		bTeleportRequested(false)
+	{
 	}
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
@@ -157,8 +180,8 @@ struct st_Schedule_Teleport : public st_Schedule
 
 struct st_Schedule_Delay : public st_Schedule
 {
-	int StartTime;
-	int DelayTime;
+	double StartTime;
+	double DelayTime;
 	bool bInit;
 	st_Schedule_Delay()
 		: st_Schedule(SCHEDULE_TYPE_DELAY)

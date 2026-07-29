@@ -1,12 +1,12 @@
 ﻿#pragma once
 #include "NetWork/CSession.h"
-#include "MemoryManager/CLockFreeQueue_FromGPT.h"
 
 #include "GameServerDef.h"
 #include "Scheduling/ScheduleDefines.h"
 #include "Scheduling/CSchedule.h"
 #include "ClientDefines.h"
 #include "CUtill/CLockQueue.h"
+#include <unordered_set>
 
 struct st_Schedule;
 
@@ -14,10 +14,10 @@ class CClient : public CSession
 {
 public:
 	CClient(int Dummyid, int id);
-	~CClient() {}
+	~CClient();
 
 	// CSession 에서 상속
-	void OnRecv(int type, CPacket& cPacket, double recvtime = 0) override;
+	void OnRecv(int type, CPacket& cPacket, LONGLONG recvtime = 0) override;
 
 	void DisConnect()
 	{
@@ -30,7 +30,7 @@ private:
 	int m_iServerID;
 	
 	int m_iSendDelay;				// 패킷 전송 지연 시간 (ms)
-	int m_iSendTime;					// 패킷 전송 시간 (ms)
+	ULONGLONG m_iSendTime;			// 패킷 전송 시간 (ms)
 
 	bool m_bLogin;
 	
@@ -53,6 +53,10 @@ private:
 	st_Vector3F m_stPos;
 	float m_fMoveSpeed;
 	__int64 m_ddRecvLoopData;
+	int m_iTeleportResult;
+	std::unordered_set<int> m_visiblePlayers;
+	int m_iAoiInTransitionCount;
+	int m_iAoiOutTransitionCount;
 
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
@@ -84,11 +88,20 @@ public:
 	const st_Schedule* GetWorkSchedule() { return m_pWorkSchedule; }
 	st_Vector3F GetPos() { return m_stPos; }
 	ESTATE GetState() { return m_eState; }
+	int GetTeleportResult() const { return m_iTeleportResult; }
+	int GetVisiblePlayerCount() const { return static_cast<int>(m_visiblePlayers.size()); }
+	int GetAoiInTransitionCount() const { return m_iAoiInTransitionCount; }
+	int GetAoiOutTransitionCount() const { return m_iAoiOutTransitionCount; }
 
 public:
 	void AddCompleteScheduleCount() { m_iCompleteScheduleCount.fetch_add(1); }
 	void AddPos(st_Vector3F pos) { m_stPos += pos; }
 	void Arrive(st_Vector3F pos) { m_stPos = pos; }
+	void BeginTeleport() { m_iTeleportResult = -1; }
+	void SetTeleportResult(int result) { m_iTeleportResult = result; }
+	void AddVisiblePlayer(int id);
+	void RemoveVisiblePlayer(int id);
+	void ResetAoiTransitionCount();
 
 public:
 	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완

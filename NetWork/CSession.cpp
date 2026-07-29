@@ -5,7 +5,7 @@
 CSession::CSession()
 {
 	CICP = 0;
-	sock = 0;
+	sock = INVALID_SOCKET;
 
 	RecvQ = new CRingBuffer;
 	SendQ = new CRingBuffer;
@@ -17,6 +17,7 @@ CSession::CSession()
 	UseFlag = true;
 
 	bConnect = false;
+	m_bWsaStarted = false;
 
 	IOCnt = 0;
 
@@ -30,6 +31,11 @@ CSession::CSession()
 CSession::~CSession()
 {
 	CloseSocket();
+	if (m_bWsaStarted)
+	{
+		WSACleanup();
+		m_bWsaStarted = false;
+	}
 
 	delete RecvQ;
 	delete SendQ;
@@ -38,16 +44,16 @@ CSession::~CSession()
 	DeleteCriticalSection(&m_csSendTime);
 }
 
-void CSession::PushSendTime(int type, double time)
+void CSession::PushSendTime(int type, LONGLONG time)
 {
 	EnterCriticalSection(&m_csSendTime);
 	m_mapSendTime[type].push(time);
 	LeaveCriticalSection(&m_csSendTime);
 }
 
-double CSession::PopSendTime(int type)
+LONGLONG CSession::PopSendTime(int type)
 {
-	double ret = -1;
+	LONGLONG ret = -1;
 	EnterCriticalSection(&m_csSendTime);
 
 	if (m_mapSendTime.find(type) == m_mapSendTime.end())
@@ -74,29 +80,66 @@ int CSession::Connect(const char IP[16], unsigned short Port, HANDLE cicp)
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return WSAGetLastError();
+	m_bWsaStarted = true;
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	SOCKADDR_IN addr_in;
 	ZeroMemory(&addr_in, sizeof(SOCKADDR_IN));
 	addr_in.sin_family = AF_INET;
 
-	inet_pton(AF_INET, IP, &addr_in.sin_addr);
+	if (inet_pton(AF_INET, IP, &addr_in.sin_addr) != 1)
+	{
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return WSAEINVAL;
+	}
 
 	addr_in.sin_port = htons(Port);
 
 	if (connect(sock, (SOCKADDR*)&addr_in, sizeof(addr_in)) == SOCKET_ERROR)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 	
 	u_long on = 1;
 	if (ioctlsocket(sock, FIONBIO, &on) == SOCKET_ERROR)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	bConnect = true;
 	
 	CICP = CreateIoCompletionPort((HANDLE)sock, cicp, (ULONG_PTR)this, 0);
+	if (CICP == NULL)
+	{
+		const int error = GetLastError();
+		bConnect = false;
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	RecvPost();
 
@@ -121,6 +164,7 @@ void CSession::CloseSocket()
 	{
 		bConnect = false;
 		closesocket(sock);
+		sock = INVALID_SOCKET;
 		Clear();
 	}
 }

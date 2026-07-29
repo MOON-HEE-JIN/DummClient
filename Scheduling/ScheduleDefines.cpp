@@ -1,6 +1,20 @@
 ﻿#include "ScheduleDefines.h"
 #include "../Log/CLog.h"
 #include "../CUtill/CUtill.h"
+#include "../Test/TSchedule_PlaceMainworld.h"
+
+namespace
+{
+	void SendMoveStop(CClient* pClient, const st_Vector3F& pos)
+	{
+		st_CTS_MoveStop req;
+		req.pos = pos;
+
+		CPacket packet;
+		packet << req;
+		pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
+	}
+}
 bool st_Schedule_Login::DoSchedule(CClient* pClient)
 {
 	if (pClient->GetLogin())
@@ -131,6 +145,8 @@ bool st_Schedule_MoveStart::DoInitRunSchedule(CClient* pClient)
 	StartPos = pClient->GetPos();
 	EndPos = CUtil::RandomVector3F(-80, 80);
 	Dir = StartPos.Direction(EndPos);
+	bStopRequested = false;
+	pClient->SetState(ESTATE::IDEL);
 
 	st_CTS_MoveStart req;
 	req.pos = StartPos;
@@ -147,7 +163,7 @@ bool st_Schedule_MoveStart::DoInitRunSchedule(CClient* pClient)
 
 bool st_Schedule_MoveStart::DoSchedule(CClient* pClient)
 {
-	double time = CUtil::GetQPCNowTime();
+	const double time = CUtil::GetQPCNowTime();
 	
 	if (pClient->GetState() == ESTATE::IDEL)
 	{
@@ -158,32 +174,97 @@ bool st_Schedule_MoveStart::DoSchedule(CClient* pClient)
 		pClient->SetState(ESTATE::MOVE_ING);
 		StartTime = time;
 		UpdateTime = time;
+		StartPos = pClient->GetPos();
+		Dir = StartPos.Direction(EndPos);
 	}
 	else if (pClient->GetState() == ESTATE::MOVE_STOP)
 	{
-		pClient->Arrive(EndPos);
 		pClient->SetState(ESTATE::IDEL);
 		return true;
 	}
-	double frame = (time - UpdateTime) / FIXED_DELTA;
 
+	if (bStopRequested)
+		return false;
 
-	float speed = pClient->GetSpeed() * FIXED_DELTA * frame;
+	const float moveDistance = pClient->GetSpeed() * static_cast<float>(time - UpdateTime);
+	const float remainDistance = pClient->GetPos().DistanceToSquared(EndPos);
+	if (remainDistance <= moveDistance)
+	{
+		pClient->Arrive(EndPos);
+		SendMoveStop(pClient, EndPos);
+		bStopRequested = true;
+	}
+	else
+	{
+		pClient->AddPos(Dir * moveDistance);
+	}
 
-	float speedDx = Dir.X * speed;
-	float speedDy = Dir.Y * speed;
-	float speedDz = Dir.Z * speed;
+	UpdateTime = time;
+	return false;
+}
 
-	float speeddist = speed * speed;
-	float remaindist = StartPos.DistanceToNSquared(EndPos);
+bool st_Schedule_MainWorldTeleport::DoInitRunSchedule(CClient* pClient)
+{
+	StartPos = pClient->GetPos();
+	return pOwner != nullptr;
+}
 
-	// Test 를 위해서 넘어가도 계속 더한다
-	//if (remaindist <= speeddist)
-	//	pClient->Arrive(EndPos);
-	
-	pClient->AddPos({ speedDx, speedDy, speedDz });
+bool st_Schedule_MainWorldTeleport::DoSchedule(CClient* pClient)
+{
+	if (pOwner == nullptr)
+		return false;
 
-	UpdateTime = CUtil::GetQPCNowTime();
+	if (!bTeleportRequested)
+	{
+		if (!pOwner->CanStartCycle(Cycle))
+			return false;
+
+		StartPos = pClient->GetPos();
+		GoalPos = pOwner->GetCyclePos(pClient->GetID(), Cycle);
+		pClient->BeginTeleport();
+
+		st_CTS_Teleport req;
+		req.pos = GoalPos;
+		CPacket packet;
+		packet << req;
+		pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
+		bTeleportRequested = true;
+		return false;
+	}
+
+	const int result = pClient->GetTeleportResult();
+	if (result == -1)
+		return false;
+
+	const st_Vector3F actual = pClient->GetPos();
+	const bool teleportPass = result == 0
+		&& actual.DistanceToSquared(GoalPos) < 0.1f;
+	g_LogDummy.ILog(
+		"MainWorld TELEPORT_%s Cycle[%d] Client[%d] Tile[%d,%d]->[%d,%d] Grid[%d]->[%d] Visible[%d]",
+		teleportPass ? "PASS" : "FAIL",
+		Cycle,
+		pClient->GetID(),
+		pOwner->GetTileX(StartPos),
+		pOwner->GetTileZ(StartPos),
+		pOwner->GetTileX(actual),
+		pOwner->GetTileZ(actual),
+		pOwner->GetManagementGrid(StartPos),
+		pOwner->GetManagementGrid(actual),
+		pClient->GetVisiblePlayerCount());
+
+	int passCount = 0;
+	if (pOwner->RecordCycleResult(Cycle, teleportPass, passCount))
+	{
+		g_LogDummy.ILog(
+			"MainWorld TELEPORT SUMMARY Cycle[%d] Client[%d] Pass[%d] Fail[%d]",
+			Cycle,
+			pOwner->GetExpectedClientCount(),
+			passCount,
+			pOwner->GetExpectedClientCount() - passCount);
+	}
+
+	++Cycle;
+	bTeleportRequested = false;
 	return false;
 }
 
@@ -228,6 +309,8 @@ bool st_Schedule_LoopBack::DoSchedule(CClient* pClient)
 
 bool st_Schedule_Teleport::DoInitRunSchedule(CClient* pClient)
 {
+	pClient->BeginTeleport();
+
 	st_CTS_Teleport req;
 	req.pos = GoalPos;
 
@@ -241,7 +324,7 @@ bool st_Schedule_Teleport::DoInitRunSchedule(CClient* pClient)
 
 bool st_Schedule_Teleport::DoSchedule(CClient* pClient)
 {
-	if (pClient->GetPos() == GoalPos)
+	if (pClient->GetTeleportResult() == 0 && pClient->GetPos() == GoalPos)
 		return true;
 	return false;
 }

@@ -3,6 +3,7 @@
 #include "CDummy.h"
 #include "../Scheduling/CSchedule.h"
 #include <map>
+#include <atomic>
 
 #define THREAD_CLIENT_COUNT 1000  //thread 당 클라 담당 개수
 
@@ -15,6 +16,11 @@ struct st_ThreadLock
 	{
 		bChange = false;
 		InitializeCriticalSection(&cs);
+	}
+
+	~st_ThreadLock()
+	{
+		DeleteCriticalSection(&cs);
 	}
 
 	void Lock()
@@ -42,10 +48,10 @@ private:
 	int m_iClientID;
 	char m_szIP[16];
 	short m_sPort;
-	bool m_bRun = true;
+	std::atomic<bool> m_bRun = true;
 
 	int m_iDelayLatencyTime = 1 * 1000;
-	int m_iLatencyTime = 0;
+	std::atomic<ULONGLONG> m_iLatencyTime = 0;
 
 	std::vector<CSchedule*> m_vecSchedules;
 
@@ -53,7 +59,12 @@ private:
 public:
 	bool CreateDummy(int channel, int zone, int count, int scheduleType);
 	void AddDummyClient(CClient* pClient);
-	CSchedule* GetSchedule(int index) { return m_vecSchedules[index]; }
+	CSchedule* GetSchedule(int index)
+	{
+		if (index < 0 || index >= static_cast<int>(m_vecSchedules.size()))
+			return nullptr;
+		return m_vecSchedules[index];
+	}
 
 private:
 	HANDLE m_hExit;
