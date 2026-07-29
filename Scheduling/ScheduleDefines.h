@@ -3,33 +3,43 @@
 #include "../CClient.h"
 
 class CClient;
+class TSchedule_PlaceMainWorld;
 
-enum SCHEDULE_TEST_TYPE
+enum ESCHEDULE_TEST_TYPE
 {
 	SCHEDULE_RETURN_ZONE,
 	SCHEDULE_MOVE,
+	SCHEDULE_LOOPBACK,
+	SCHEDULE_MAIN_WORLD,
+	SCHEDULE_END,
 };
 
-enum SCHEDULE_TYPE
+enum ESCHEDULE_TYPE
 {
 	SCHEDULE_TYPE_NONE,
 	SCHEDULE_TYPE_LOGIN,
 	SCHEDULE_TYPE_LOGIN_CHANGE_ZONE,
 	SCHEDULE_TYPE_CHANGE_ZONE,
 	SCHEDULE_TYPE_RETURN_ZONE,
+	SCHEDULE_TYPE_MOVE_START,
+	SCHEDULE_TYPE_MOVE_STOP,
+	SCHEDULE_TYPE_LOOPBACK,
+	SCHEDULE_TYPE_TELEPORT,
+	SCHEDULE_TYPE_MAIN_WORLD_TELEPORT,
+	SCHEDULE_TYPE_DELAY,
 };
 
 struct st_Schedule
 {
 protected:
-	const SCHEDULE_TYPE eType;		// 스케줄 타입
+	const ESCHEDULE_TYPE eType;		// 스케줄 타입
 	bool bRecvWait;					// 응답 대기
 	bool bComplete;					// 완료 여부
 
 public:
-	st_Schedule(SCHEDULE_TYPE type, bool wait = false) : eType(type), bRecvWait(wait), bComplete(false) {}
+	st_Schedule(ESCHEDULE_TYPE type, bool wait = false) : eType(type), bRecvWait(wait), bComplete(false) {}
 
-	SCHEDULE_TYPE GetType() const { return eType; }
+	ESCHEDULE_TYPE GetType() const { return eType; }
 	bool IsRecvWait() const { return bRecvWait; }
 	bool IsComplete() const { return bComplete; }
 
@@ -81,6 +91,106 @@ struct st_Schedule_ReturnZone : public st_Schedule
 		iZoneID = 0;
 		iChannel = 0;
 	}
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MoveStart : public st_Schedule
+{
+	st_Vector3F StartPos;
+	st_Vector3F EndPos;
+	st_Vector3F Dir;
+	double StartTime;
+	double UpdateTime;
+	bool bStopRequested;
+
+	st_Schedule_MoveStart()
+		: st_Schedule(SCHEDULE_TYPE_MOVE_START)
+	{
+		StartTime = 0;
+		UpdateTime = 0;
+		bStopRequested = false;
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MainWorldTeleport : public st_Schedule
+{
+	TSchedule_PlaceMainWorld* pOwner;
+	st_Vector3F StartPos;
+	st_Vector3F GoalPos;
+	int Cycle;
+	bool bTeleportRequested;
+
+	st_Schedule_MainWorldTeleport(TSchedule_PlaceMainWorld* owner)
+		: st_Schedule(SCHEDULE_TYPE_MAIN_WORLD_TELEPORT),
+		pOwner(owner),
+		Cycle(0),
+		bTeleportRequested(false)
+	{
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MoveStop : public st_Schedule
+{
+	st_Vector3F StopPos;
+
+	st_Schedule_MoveStop()
+		: st_Schedule(SCHEDULE_TYPE_MOVE_STOP)
+	{
+
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_LoopBack : public st_Schedule
+{
+	__int64 data;
+	
+	st_Schedule_LoopBack()
+		: st_Schedule(SCHEDULE_TYPE_LOOPBACK)
+	{
+		data = 0;
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_Teleport : public st_Schedule
+{
+	st_Vector3F GoalPos;
+
+	st_Schedule_Teleport()
+		: st_Schedule(SCHEDULE_TYPE_TELEPORT)
+	{
+		GoalPos = { 0,0,0 };
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_Delay : public st_Schedule
+{
+	double StartTime;
+	double DelayTime;
+	bool bInit;
+	st_Schedule_Delay()
+		: st_Schedule(SCHEDULE_TYPE_DELAY)
+	{
+		StartTime = 0;
+		DelayTime = -1; // -1 은 무한 대기
+		bInit = false;
+	}
+
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
 	virtual bool DoSchedule(CClient* pClient) override;
 };

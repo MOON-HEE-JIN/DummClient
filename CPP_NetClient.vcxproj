@@ -120,6 +120,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,14 +134,17 @@
     <ClInclude Include="CDummy\DummyDef.h" />
     <ClInclude Include="CGrid\CGrid.h" />
     <ClInclude Include="CGrid\GridDefine.h" />
+    <ClInclude Include="ClientDefines.h" />
     <ClInclude Include="CPacketProc.h" />
     <ClInclude Include="CUtill\CBinFile.h" />
     <ClInclude Include="CUtill\CBinFileDefine.h" />
+    <ClInclude Include="CUtill\CLockQueue.h" />
     <ClInclude Include="CUtill\CPacket.h" />
     <ClInclude Include="CUtill\CRingBuffer.h" />
     <ClInclude Include="CUtill\CUtill.h" />
     <ClInclude Include="GameServerDef.h" />
     <ClInclude Include="Log\CLog.h" />
+    <ClInclude Include="Log\LogDefines.h" />
     <ClInclude Include="Manager\CBinFileManager.h" />
     <ClInclude Include="Manager\CZoneManager.h" />
     <ClInclude Include="MemoryManager\CHazardMemoryPool_FromGPT.h" />
@@ -157,6 +161,10 @@
     <ClInclude Include="Stub\Serialization.h" />
     <ClInclude Include="Stub\StructDef.h" />
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
+    <ClInclude Include="Test\TSchedule_LoopBack.h" />
+    <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
+    <ClInclude Include="Test\TSchedule_Move.h" />
+    <ClInclude Include="Test\TSchedule_PlaceMainworld.h" />
     <ClInclude Include="Zone\CBinVoxel.h" />
     <ClInclude Include="Zone\CBinZone.h" />
     <ClInclude Include="Zone\CBinZoneIdx.h" />
@@ -185,6 +193,9 @@
     <ClCompile Include="Stub\CLIENT_STUB.cpp" />
     <ClCompile Include="Stub\Serialization.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
+    <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
+    <ClCompile Include="Test\TSchedule_Move.cpp" />
+    <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp" />
     <ClCompile Include="Zone\CBinVoxel.cpp" />
     <ClCompile Include="Zone\CBinZone.cpp" />
     <ClCompile Include="Zone\CBinZoneIdx.cpp" />

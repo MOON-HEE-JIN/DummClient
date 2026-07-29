@@ -5,7 +5,7 @@
 CSession::CSession()
 {
 	CICP = 0;
-	sock = 0;
+	sock = INVALID_SOCKET;
 
 	RecvQ = new CRingBuffer;
 	SendQ = new CRingBuffer;
@@ -17,50 +17,61 @@ CSession::CSession()
 	UseFlag = true;
 
 	bConnect = false;
+	m_bWsaStarted = false;
 
 	IOCnt = 0;
 
-	m_DebugTotalNetTime = 0;
-	m_DebugTotalCount = 0;
-
+	QueryPerformanceFrequency(&freq);
+	
 	InitializeCriticalSection(&cs);
 	InitializeCriticalSection(&m_csSendQ);
-	InitializeCriticalSection(&m_DebugCSTime);
+	InitializeCriticalSection(&m_csSendTime);
 }
 
 CSession::~CSession()
 {
 	CloseSocket();
+	if (m_bWsaStarted)
+	{
+		WSACleanup();
+		m_bWsaStarted = false;
+	}
 
 	delete RecvQ;
 	delete SendQ;
 	DeleteCriticalSection(&cs);
 	DeleteCriticalSection(&m_csSendQ);
-	DeleteCriticalSection(&m_DebugCSTime);
+	DeleteCriticalSection(&m_csSendTime);
 }
 
-BOOL CSession::GetQueueEmpty()
+void CSession::PushSendTime(int type, LONGLONG time)
 {
-	EnterCriticalSection(&m_DebugCSTime);
-	bool ret = m_DebugTimeQueue.empty();
-	LeaveCriticalSection(&m_DebugCSTime);
+	EnterCriticalSection(&m_csSendTime);
+	m_mapSendTime[type].push(time);
+	LeaveCriticalSection(&m_csSendTime);
+}
+
+LONGLONG CSession::PopSendTime(int type)
+{
+	LONGLONG ret = -1;
+	EnterCriticalSection(&m_csSendTime);
+
+	if (m_mapSendTime.find(type) == m_mapSendTime.end())
+	{
+		ret = -1;
+	}
+	else
+	{
+		if (m_mapSendTime[type].empty())
+		{
+			LeaveCriticalSection(&m_csSendTime);
+			return -1;
+		}
+		ret = m_mapSendTime[type].front();
+		m_mapSendTime[type].pop();
+	}
+	LeaveCriticalSection(&m_csSendTime);
 	return ret;
-}
-
-DWORD CSession::GetSendTime()
-{
-	EnterCriticalSection(&m_DebugCSTime);
-	DWORD ret = m_DebugTimeQueue.front();
-	m_DebugTimeQueue.pop();
-	LeaveCriticalSection(&m_DebugCSTime);
-	return ret;
-}
-
-void CSession::AddSRNetTime(DWORD t)
-{
-	m_DebugTotalNetTime += t;
-	m_DebugTotalCount.fetch_add(1);
-	m_DebugAvgTime.store((float)m_DebugTotalNetTime / m_DebugTotalCount.load());
 }
 
 int CSession::Connect(const char IP[16], unsigned short Port, HANDLE cicp)
@@ -69,29 +80,66 @@ int CSession::Connect(const char IP[16], unsigned short Port, HANDLE cicp)
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return WSAGetLastError();
+	m_bWsaStarted = true;
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	SOCKADDR_IN addr_in;
 	ZeroMemory(&addr_in, sizeof(SOCKADDR_IN));
 	addr_in.sin_family = AF_INET;
 
-	inet_pton(AF_INET, IP, &addr_in.sin_addr);
+	if (inet_pton(AF_INET, IP, &addr_in.sin_addr) != 1)
+	{
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return WSAEINVAL;
+	}
 
 	addr_in.sin_port = htons(Port);
 
 	if (connect(sock, (SOCKADDR*)&addr_in, sizeof(addr_in)) == SOCKET_ERROR)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 	
 	u_long on = 1;
 	if (ioctlsocket(sock, FIONBIO, &on) == SOCKET_ERROR)
-		return WSAGetLastError();
+	{
+		const int error = WSAGetLastError();
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	bConnect = true;
 	
 	CICP = CreateIoCompletionPort((HANDLE)sock, cicp, (ULONG_PTR)this, 0);
+	if (CICP == NULL)
+	{
+		const int error = GetLastError();
+		bConnect = false;
+		closesocket(sock);
+		sock = INVALID_SOCKET;
+		WSACleanup();
+		m_bWsaStarted = false;
+		return error;
+	}
 
 	RecvPost();
 
@@ -107,14 +155,6 @@ void CSession::Clear()
 	RecvQ->Clear();
 	SendQ->Clear();
 
-	m_DebugTotalNetTime = 0;
-	m_DebugTotalCount = 0;
-
-	while (!m_DebugTimeQueue.empty())
-	{
-		m_DebugTimeQueue.pop();
-	}
-
 	CloseSocket();
 }
 
@@ -124,6 +164,7 @@ void CSession::CloseSocket()
 	{
 		bConnect = false;
 		closesocket(sock);
+		sock = INVALID_SOCKET;
 		Clear();
 	}
 }
@@ -131,7 +172,6 @@ void CSession::CloseSocket()
 int CSession::SendPacket(CPacket* _packet)
 {
 	EnterCriticalSection(&m_csSendQ);
-	
 	int ret = SendQ->Enqueue(_packet->GetReadBuffPtr(), _packet->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 
@@ -139,10 +179,10 @@ int CSession::SendPacket(CPacket* _packet)
 	//printf("SendPacket\n");
 }
 
-void CSession::SendEnqueuePacket(CPacket* _pPacket)
+void CSession::SendEnqueuePacket(int type, CPacket* _pPacket)
 {
 	EnterCriticalSection(&m_csSendQ);
-	
+	m_vecEnqueueType.push_back(type);
 	int ret = SendQ->Enqueue(_pPacket->GetReadBuffPtr(), _pPacket->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 }
@@ -171,7 +211,18 @@ int CSession::SendPost()
 		wsabuf[1].buf = (char*)SendQ->GetBuffer();
 		wsabuf[1].len = SendQ->GetUseSize() - SendQ->GetDirectDequeueSize();
 		len = wsabuf[0].len + wsabuf[1].len;
+		
+		LARGE_INTEGER sendtime;
+		QueryPerformanceCounter(&sendtime);
+
+		for (int i = 0; i < m_vecEnqueueType.size(); i++)
+		{
+			PushSendTime(m_vecEnqueueType[i], sendtime.QuadPart);
+		}
+		m_vecEnqueueType.clear();
+		
 		ret = WSASend(sock, wsabuf, 2, 0, 0, &SendOverlap, NULL);
+	
 	}
 	else
 	{
@@ -179,16 +230,22 @@ int CSession::SendPost()
 		wsabuf.buf = (char*)SendQ->GetReadPointer();
 		wsabuf.len = SendQ->GetDirectDequeueSize();
 		len = wsabuf.len;
+
+		LARGE_INTEGER sendtime;
+		QueryPerformanceCounter(&sendtime);
+
+		// 해당 부분에서 sendtime 에 enqueue 하는 이유는
+		//  WSASend 후 바로 Recv 가 올 경우 enqueue 전에 pop 을 하고 시간 측정이 제대로 작동하지 않는다
+		// enqueue 시간을 고려하고 시간 확인하기 
+		for (int i = 0; i < m_vecEnqueueType.size(); i++)
+		{
+			PushSendTime(m_vecEnqueueType[i], sendtime.QuadPart);
+		}
+		m_vecEnqueueType.clear();
+		
 		ret = WSASend(sock, &wsabuf, 1, 0, 0, &SendOverlap, NULL);
 	}
-	DWORD t = GetTickCount();
-	if (ret != SOCKET_ERROR)
-	{
-		EnterCriticalSection(&m_DebugCSTime);
-		m_DebugTimeQueue.push(t);
-		LeaveCriticalSection(&m_DebugCSTime);
-	}
-
+	
 	LeaveCriticalSection(&m_csSendQ);
 
 	if (ret == SOCKET_ERROR)

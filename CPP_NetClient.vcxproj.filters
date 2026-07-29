@@ -144,6 +144,27 @@
     <ClInclude Include="CDummy\CDummyManager.h">
       <Filter>소스 파일\CDummy</Filter>
     </ClInclude>
+    <ClInclude Include="ClientDefines.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Log\LogDefines.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CUtill\CLockQueue.h">
+      <Filter>소스 파일\CUtill</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_Move.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_LoopBack.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_MainWorldSetTile.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_PlaceMainworld.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -191,9 +212,6 @@
     <ClCompile Include="Scheduling\CSchedule.cpp">
       <Filter>소스 파일\Scheduling</Filter>
     </ClCompile>
-    <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
-      <Filter>소스 파일\TestSchedule</Filter>
-    </ClCompile>
     <ClCompile Include="CUtill\CBinFile.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -216,7 +234,16 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp">
-      <Filter>소스 파일\CDummy</Filter>
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_Move.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_LoopBack.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

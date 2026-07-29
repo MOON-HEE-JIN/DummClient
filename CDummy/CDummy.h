@@ -28,20 +28,31 @@ private:
 	
 	HANDLE m_hThread;
 	HANDLE m_hExitEvent;
+private:
+	double m_ddMaxTime = 0;
+	double m_ddMinTime = 0;
+	double m_ddAvgTime = 0;
+	int m_iMaxCompleteScheduleCount = 0;
+	int m_iMinCompleteScheduleCount = 0;
+public:
+	double GetMaxTime() { return m_ddMaxTime; }
+	double GetMinTime() { return m_ddMinTime; }
+	double GetAvgTime() { return m_ddAvgTime; }
+	int GetMaxComplete() { return m_iMaxCompleteScheduleCount; }
+	int GetMinComplete() { return m_iMinCompleteScheduleCount; }
+
 public:
 	const std::vector<CClient*>& GetDummyClients() { return m_DummyClients; };
 
+	int m_iDelayLatencyTime;
+	ULONGLONG m_iLatencyTime;
+
 private:
-	void CreateDummyClient();
+	bool CreateDummyClient();
 	void ReleaseDummyClient();
-	void Update();
+	void LogClientLatencyTime();
 
-	static unsigned __stdcall RunThread(void* arg);		// accept() Thread
-	int Run();
 public:
-	void Init(int channel, int zone, CSchedule* pSchedule);
-
-	void Start();
-	void Wait();
-	void Stop();
+	bool Init(int channel, int zone, CSchedule* pSchedule);
+	void Update();
 };
