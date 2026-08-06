@@ -243,7 +243,7 @@ void CClient::Update()
 
 	for (RECV_JOB& job : jobs)
 	{
-		g_cPacketProc.DO_GAME_Proc(jobs[i].type, this, jobs[i].cPacket);
+		g_cPacketProc.DO_GAME_Proc(job.type, this, job.cPacket);
 
 	}
 
