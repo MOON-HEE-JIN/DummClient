@@ -2,7 +2,9 @@
 #include "../Test/TSchedule_Change_Zone.h"
 #include "../Test/TSchedule_Move.h"
 #include "../Test/TSchedule_LoopBack.h"
+#include "../Test/TSchedule_PlaceMainworld.h"
 #include "../Log/CLog.h"
+#include <process.h>
 
 CDummyManager g_DummyManager;
 
@@ -11,12 +13,31 @@ CDummyManager::CDummyManager()
     m_iDummyID = 0;
     m_iClientID = 0;
 
-    memcpy(m_szIP, "127.0.0.1", 10);
+    strcpy_s(m_szIP, "127.0.0.1");
     m_sPort = 7799;
 
-    m_vecSchedules.push_back(new TSchedule_Change_Zone());
-    m_vecSchedules.push_back(new TSchedule_Move());
-    m_vecSchedules.push_back(new TSchedule_LoopBack());
+    m_vecSchedules.resize(ESCHEDULE_TEST_TYPE::SCHEDULE_END);
+
+    {
+        CSchedule* pSchedule = new TSchedule_Change_Zone();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_Move();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_LoopBack();
+		m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_PlaceMainWorld();
+        ((TSchedule_PlaceMainWorld*)pSchedule)->Init(1024, 1024, 4, 4);
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
 
     InitializeCriticalSection(&cs);
 
@@ -28,38 +49,82 @@ CDummyManager::CDummyManager()
   
     for (int i = 0; i < 5; i++)
     {
-        m_vecDummyThreadHandles[i] = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
         m_vecThreadDummyClientCount[i] = 0;
         m_vecThreadLock[i] = new st_ThreadLock();
     }
+
+    // 작업 자료구조를 모두 만든 뒤 스레드를 시작해 초기 접근 경쟁을 막는다.
+    for (int i = 0; i < 5; i++)
+        m_vecDummyThreadHandles[i] = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
 }
 
 CDummyManager::~CDummyManager()
 {
-    m_bRun = false;
+    m_bRun.store(false);
     
-    int waitthreadcount = m_vecDummyThreadHandles.size();
-    for (int i = 0; i < waitthreadcount; i++)
-        SetEvent(m_hExit);
+    SetEvent(m_hExit);
 
-    WaitForMultipleObjects(waitthreadcount, m_vecDummyThreadHandles.data(), true, INFINITE);
-
-    int Loop = m_vecThreadLock.size();
-    for (int i = 0; i < Loop; i++)
+    for (HANDLE handle : m_vecDummyThreadHandles)
     {
-        delete m_vecThreadLock[i];
+        if (handle == NULL)
+            continue;
+        WaitForSingleObject(handle, INFINITE);
+        CloseHandle(handle);
     }
+
+    for (auto& [id, dummy] : m_mapDummys)
+        delete dummy;
+    m_mapDummys.clear();
+    m_mapDummyClients.clear();
+
+    for (st_ThreadLock* lock : m_vecThreadLock)
+        delete lock;
+
+    for (CSchedule* schedule : m_vecSchedules)
+        delete schedule;
+
+    if (m_hExit != NULL)
+        CloseHandle(m_hExit);
+    DeleteCriticalSection(&cs);
 }
 
 bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleType)
 {
-    int ID = m_iDummyID++;
+    CSchedule* schedule = GetSchedule(scheduleType);
+    if (count <= 0 || schedule == nullptr)
+    {
+        g_LogDummy.ELog("ERROR Invalid Dummy Config count[%d] schedule[%d]", count, scheduleType);
+        return false;
+    }
+
+    if (scheduleType == ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD)
+    {
+        TSchedule_PlaceMainWorld* mainWorldSchedule = dynamic_cast<TSchedule_PlaceMainWorld*>(schedule);
+        if (mainWorldSchedule == nullptr || count != mainWorldSchedule->GetTileCount())
+        {
+            g_LogDummy.ELog(
+                "ERROR MainWorld requires one client per tile. client[%d] tile[%d]",
+                count,
+                mainWorldSchedule == nullptr ? 0 : mainWorldSchedule->GetTileCount());
+            return false;
+        }
+
+        mainWorldSchedule->PrepareRun(m_iClientID, count);
+    }
+
+    const int ID = m_iDummyID++;
     CDummy* pDummy = new CDummy(ID, m_szIP, m_sPort, count, m_iClientID);
     m_iClientID += count;
 
-    m_mapDummys[ID] = pDummy;
+    if (!pDummy->Init(channel, zone, schedule))
+    {
+        delete pDummy;
+        --m_iDummyID;
+        m_iClientID -= count;
+        return false;
+    }
 
-    pDummy->Init(channel, zone, m_vecSchedules[scheduleType]);
+    m_mapDummys[ID] = pDummy;
     RegisterThread(pDummy);
   
     return true;
@@ -76,9 +141,9 @@ void CDummyManager::AddDummyClient(CClient* pClient)
 unsigned __stdcall CDummyManager::RunThread(void* arg)
 {
     CDummyManager* p = (CDummyManager*)arg;
-    static int staticID = 0;
+    static std::atomic<int> nextThreadID = 0;
 
-    int ThreadID = staticID++;
+    const int ThreadID = nextThreadID.fetch_add(1);
 
     p->Run(ThreadID);
 
@@ -89,22 +154,21 @@ void CDummyManager::Run(const int id)
 {
     int ret;
     std::vector<CDummy*> vec;
-    while (m_bRun)
+    while (m_bRun.load())
     {
         ret = WaitForSingleObject(m_hExit, 1);
 
         if (ret == WAIT_OBJECT_0)
             break;
 
-        if (m_vecThreadLock[id]->bChange.load())
+        if (m_vecThreadLock[id]->bChange.exchange(false))
         {
-            m_vecThreadLock[id]->bChange.store(false);
             m_vecThreadLock[id]->Lock();
             vec = m_mapThreadDummy[id];    // 복사해서 가져오기
             m_vecThreadLock[id]->UnLock();
         }
         
-        int Loop = vec.size();
+        const int Loop = static_cast<int>(vec.size());
         double maxTime = 0, minTime = 9999999, avgTime = 0;
         int maxComplete = 0, minComplete = 999999999;
         
@@ -117,17 +181,19 @@ void CDummyManager::Run(const int id)
             maxComplete = max(maxComplete, vec[i]->GetMaxComplete());
             minComplete = min(minComplete, vec[i]->GetMinComplete());
         }
-        avgTime /= Loop;
-
         if (Loop > 0)
         {
-            if (m_iLatencyTime + m_iDelayLatencyTime > GetTickCount())
+            avgTime /= static_cast<double>(Loop);
+
+            const ULONGLONG now = GetTickCount64();
+            ULONGLONG previousLogTime = m_iLatencyTime.load();
+            if (previousLogTime + static_cast<ULONGLONG>(m_iDelayLatencyTime) > now)
+                continue;
+            if (!m_iLatencyTime.compare_exchange_strong(previousLogTime, now))
                 continue;
 
             g_LogDummy.ILog("MaxTime : %.3f, MinTime : %.3f, AvgTime : %.3f, MaxComplete : %d, MinComplete : %d",
                 maxTime, minTime, avgTime, maxComplete, minComplete);
-        
-            m_iLatencyTime = GetTickCount();
         }
     }
 }
@@ -137,12 +203,12 @@ void CDummyManager::RegisterThread(CDummy* pDummy)
     // 개수 체크 부터
     bool bNew = true;
     
-    int clientcount = pDummy->GetDummyClients().size();
-    int Loop = m_vecThreadDummyClientCount.size();
+    const int clientcount = static_cast<int>(pDummy->GetDummyClients().size());
+    const int Loop = static_cast<int>(m_vecThreadDummyClientCount.size());
     int registerId;
     for (int i = 0; i < Loop; i++)
     {
-        if (m_vecThreadDummyClientCount[i] + clientcount < THREAD_CLIENT_COUNT)
+        if (m_vecThreadDummyClientCount[i] + clientcount <= THREAD_CLIENT_COUNT)
         {
             registerId = i;
             bNew = false;
@@ -152,11 +218,13 @@ void CDummyManager::RegisterThread(CDummy* pDummy)
 
     if (bNew)
     {
-        m_vecDummyThreadHandles.push_back((HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL));
+        m_vecDummyThreadHandles.push_back(NULL);
         m_vecThreadDummyClientCount.push_back(0);
-        m_mapThreadDummy[Loop].push_back(pDummy);
         m_vecThreadLock.push_back(new st_ThreadLock());
+        m_vecThreadDummyClientCount[Loop] = clientcount;
+        m_mapThreadDummy[Loop].push_back(pDummy);
         m_vecThreadLock.back()->bChange.store(true);
+        m_vecDummyThreadHandles[Loop] = (HANDLE)_beginthreadex(NULL, 0, RunThread, this, 0, NULL);
     }
     else
     {

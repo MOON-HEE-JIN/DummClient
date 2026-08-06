@@ -10,9 +10,11 @@
 CDummy::CDummy(int id, const char* ip, short port, int maxDummyClientCount, int defaultid)
 {
 	m_iID = id;
-	memcpy(m_szIP, ip, sizeof(m_szIP));
+	strncpy_s(m_szIP, ip, _TRUNCATE);
 	m_sPort = port;
 	m_iMaxDummyClientCount = maxDummyClientCount;
+	m_iDummyChannel = 0;
+	m_iDummyZone = 0;
 
 	m_bRun = false;
 	m_hThread = 0;
@@ -34,18 +36,18 @@ CDummy::~CDummy()
 
 void CDummy::Update()
 {
-	for (int i = 0; i < m_iMaxDummyClientCount; i++)
+	for (CClient* client : m_DummyClients)
 	{
-		if (m_DummyClients[i] == nullptr)
+		if (client == nullptr)
 			continue;
 
-		m_DummyClients[i]->Update();
+		client->Update();
 	}
 
 	LogClientLatencyTime();
 }
 
-void CDummy::CreateDummyClient()
+bool CDummy::CreateDummyClient()
 {
 	int max = m_iMaxDummyClientCount + m_iDummyDefaultID;
 	for (int i = m_iDummyDefaultID; i < max; i++)
@@ -55,61 +57,65 @@ void CDummy::CreateDummyClient()
 		if (ret != 0)
 		{
 			delete pClient;
-			pClient = nullptr;
-			g_LogDummy.ELog("ERROR Create Client");
-			exit(1);
+			g_LogDummy.ELog("ERROR Create Client[%d] WSA[%d]", i, ret);
+			ReleaseDummyClient();
+			return false;
 		}
 		pClient->Init(m_iDummyChannel, m_iDummyZone, m_pSchedule);
 		m_DummyClients.push_back(pClient);
 	}
+
+	return true;
 }
 
 void CDummy::ReleaseDummyClient()
 {
-	for (int i = 0; i < m_iMaxDummyClientCount; i++)
+	for (CClient* client : m_DummyClients)
 	{
-		if (m_DummyClients[i] == nullptr)
-			continue;
-		delete m_DummyClients[i];
+		delete client;
 	}
 	m_DummyClients.clear();
 }
 
 void CDummy::LogClientLatencyTime()
 {
-	if (m_iLatencyTime + m_iDelayLatencyTime < GetTickCount())
+	if (m_DummyClients.empty())
+		return;
+
+	const ULONGLONG now = GetTickCount64();
+	if (m_iLatencyTime + static_cast<ULONGLONG>(m_iDelayLatencyTime) < now)
 	{
 		double value = m_DummyClients[0]->GetLatency();
 		m_ddMaxTime = value;
-		double m_ddMinTime = value;
+		m_ddMinTime = value;
 		double totalTime = value;
 
 		m_iMaxCompleteScheduleCount = m_DummyClients[0]->GetCompleteScheduleCount();
 		m_iMinCompleteScheduleCount = m_DummyClients[0]->GetCompleteScheduleCount();
 
-		for (int i = 1; i < m_iMaxDummyClientCount; i++)
+		for (size_t i = 1; i < m_DummyClients.size(); i++)
 		{
 			value = m_DummyClients[i]->GetLatency();
 			m_ddMaxTime = max(m_ddMaxTime, value);
 			m_ddMinTime = min(m_ddMinTime, value);
 
 			m_iMaxCompleteScheduleCount = max(m_iMaxCompleteScheduleCount, m_DummyClients[i]->GetCompleteScheduleCount());
-			m_iMinCompleteScheduleCount = min(m_iMaxCompleteScheduleCount, m_DummyClients[i]->GetCompleteScheduleCount());
+			m_iMinCompleteScheduleCount = min(m_iMinCompleteScheduleCount, m_DummyClients[i]->GetCompleteScheduleCount());
 
 			totalTime += value;
 		}
 		
-		m_ddAvgTime = totalTime / m_iMaxDummyClientCount;
+		m_ddAvgTime = totalTime / static_cast<double>(m_DummyClients.size());
 
-		m_iLatencyTime = GetTickCount();
+		m_iLatencyTime = now;
 	}
 }
 
-void CDummy::Init(int channel, int zone, CSchedule* pSchedule)
+bool CDummy::Init(int channel, int zone, CSchedule* pSchedule)
 {
 	m_iDummyChannel = channel;
 	m_iDummyZone = zone;
 	m_pSchedule = pSchedule;
 
-	CreateDummyClient();
+	return CreateDummyClient();
 }

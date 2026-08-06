@@ -21,14 +21,32 @@ int CUtil::Random(int Min, int Max)
 	return dist(gen);
 }
 
+float CUtil::RandomFloat(float Min, float Max)
+{
+	if (Min >= Max)
+		return Min;
+
+#ifndef __FIX_SEED__
+	static thread_local std::mt19937 gen(std::random_device{}());
+#else
+	static thread_local std::mt19937 gen(19937);
+#endif // !__FIX_SEED__
+
+	std::uniform_real_distribution<float> dist(Min, Max);
+	return dist(gen);
+}
+
 st_Vector3F CUtil::RandomVector2F(float Min, float Max)
 {
-	return st_Vector3F(Random(Min,Max), 0, Random(Min, Max));
+	return st_Vector3F(RandomFloat(Min, Max), 0.0f, RandomFloat(Min, Max));
 }
 
 st_Vector3F CUtil::RandomVector3F(float Min, float Max)
 {
-	return st_Vector3F(Random(Min, Max), Random(Min, Max), Random(Min, Max));
+	return st_Vector3F(
+		RandomFloat(Min, Max),
+		RandomFloat(Min, Max),
+		RandomFloat(Min, Max));
 }
 
 double CUtil::GetQPCNowTime()
