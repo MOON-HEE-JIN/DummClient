@@ -1,7 +1,7 @@
 ﻿#include "TSchedule_PlaceMainworld.h"
 
 #include "../Scheduling/ScheduleDefines.h"
-#include <chrono>0000000
+#include <chrono>
 
 namespace
 {

@@ -11,6 +11,7 @@ enum ESCHEDULE_TEST_TYPE
 	SCHEDULE_MOVE,
 	SCHEDULE_LOOPBACK,
 	SCHEDULE_MAIN_WORLD,
+	SCHEDULE_MONITOR_AOI_TILE,
 	SCHEDULE_END,
 };
 
@@ -27,6 +28,7 @@ enum ESCHEDULE_TYPE
 	SCHEDULE_TYPE_TELEPORT,
 	SCHEDULE_TYPE_MAIN_WORLD_TELEPORT,
 	SCHEDULE_TYPE_DELAY,
+	SCHEDULE_TYPE_MONITOR_AOI_TILE,
 };
 
 struct st_Schedule
@@ -183,14 +185,15 @@ struct st_Schedule_Delay : public st_Schedule
 	double StartTime;
 	double DelayTime;
 	bool bInit;
-	st_Schedule_Delay()
+	st_Schedule_Delay(int delay = -1)
 		: st_Schedule(SCHEDULE_TYPE_DELAY)
 	{
 		StartTime = 0;
-		DelayTime = -1; // -1 은 무한 대기
+		DelayTime = delay; // -1 은 무한 대기
 		bInit = false;
 	}
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
 	virtual bool DoSchedule(CClient* pClient) override;
 };
+

@@ -28,6 +28,12 @@ struct st_PlayerInfo
 	st_Vector3F		pos;
 	float		speed;
 };
+struct st_PlayerOtherMove
+{
+	__int32		ID;
+	st_Vector3F		pos;
+	st_Vector3F		dir;
+};
 struct st_CTS_ChangeZone
 {
 	__int32		channel;
@@ -59,6 +65,11 @@ struct st_CTS_Teleport
 struct st_STC_AoiInPlayer
 {
 	st_PlayerInfo		info;
+};
+struct st_STC_AoiInPlayerMoves
+{
+	__int32		Loop1;
+	st_PlayerOtherMove		move[50];
 };
 struct st_STC_AoiInPlayers
 {

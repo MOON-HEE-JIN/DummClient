@@ -7,7 +7,7 @@
 #include "CDummy/CDummyManager.h"
 
 #include "Test/TSchedule_PlaceMainworld.h"
-
+#include "Test/TSchedule_MonitorAoiTile.h"
 static CPacketProc g_cPacketProc;
 
 CClient::CClient(int Dummyid, int id)
@@ -200,6 +200,24 @@ void CClient::NextSchedule()
 	case SCHEDULE_TYPE_DELAY:
 		SetWorkSchedule(new st_Schedule_Delay());
 		break;
+	case SCHEDULE_TYPE_MONITOR_AOI_TILE:
+	{
+		TSchedule_MonitorAoiTile* pS = dynamic_cast<TSchedule_MonitorAoiTile*>(
+			g_DummyManager.GetSchedule(ESCHEDULE_TEST_TYPE::SCHEDULE_MONITOR_AOI_TILE));
+		if (pS == nullptr)
+		{
+			g_LogDummy.ELog("ERROR MonitorAoiTile Schedule Client[%d]", m_iID);
+			SetWorkSchedule(nullptr);
+			break;
+		}
+		st_Schedule_Teleport* pSchedule = new st_Schedule_Teleport();
+
+		if (pS)
+			pSchedule->GoalPos = pS->GetPos(m_iID);
+
+		SetWorkSchedule(pSchedule);
+	}
+	break;
 	default:
 		SetWorkSchedule(nullptr);
 		break;
