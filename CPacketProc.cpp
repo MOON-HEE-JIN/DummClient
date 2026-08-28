@@ -46,7 +46,7 @@ int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 	}
 
 	pTarget->SetChangeZone(res.channel, res.zone);
-
+	pTarget->SpawnPos(res.spawn);
 	return 0;
 }
 
@@ -56,7 +56,6 @@ int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 	pReqPacket >> res;
 
 	pTarget->ConnectServerLoginThread(res.info.ID);
-	
 
 	g_DummyManager.AddDummyClient(pTarget);
 
@@ -214,6 +213,19 @@ int CPacketProc::DO_GAME_OTHERMOVESTART(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_OtherMoveStart res;
 	pReqPacket >> res;
 	pTarget->AddVisiblePlayer(res.ID);
+	return 0;
+}
+
+int CPacketProc::DO_GAME_AOI_IN_PLAYERS_MOVE(CClient* pTarget, CPacket& pReqPacket)
+{
+	st_STC_AoiInPlayerMoves res;
+	pReqPacket >> res;
+
+	res.Loop1;
+	res.move[0].ID;
+	res.move[1].dir;
+	res.move[1].pos;
+
 	return 0;
 }
 

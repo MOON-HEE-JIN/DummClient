@@ -95,6 +95,7 @@ public:
 
 public:
 	void AddCompleteScheduleCount() { m_iCompleteScheduleCount.fetch_add(1); }
+	void SpawnPos(st_Vector3F pos) { m_stPos = pos; }
 	void AddPos(st_Vector3F pos) { m_stPos += pos; }
 	void Arrive(st_Vector3F pos) { m_stPos = pos; }
 	void BeginTeleport() { m_iTeleportResult = -1; }
