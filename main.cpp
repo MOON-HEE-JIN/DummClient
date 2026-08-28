@@ -23,7 +23,8 @@ int main()
 		}
 	}
 	
-	g_DummyManager.CreateDummy(0, 1, 16 * 16, ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD);
+	g_DummyManager.CreateDummy(0, 1, 16 * 16, ESCHEDULE_TEST_TYPE::SCHEDULE_MONITOR_AOI_TILE);
+	//g_DummyManager.CreateDummy(0, 1, 16 * 16, ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD);
 	//g_DummyManager.CreateDummy(0, 1, 50, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 	//g_DummyManager.CreateDummy(1, 1, 150, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);
 	//g_DummyManager.CreateDummy(2, 1, 150, ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK);

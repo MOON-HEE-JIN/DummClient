@@ -1,8 +1,11 @@
 ﻿#include "CDummyManager.h"
+
 #include "../Test/TSchedule_Change_Zone.h"
 #include "../Test/TSchedule_Move.h"
 #include "../Test/TSchedule_LoopBack.h"
 #include "../Test/TSchedule_PlaceMainworld.h"
+#include "../Test/TSchedule_MonitorAoiTile.h"
+
 #include "../Log/CLog.h"
 #include <process.h>
 
@@ -37,6 +40,12 @@ CDummyManager::CDummyManager()
         CSchedule* pSchedule = new TSchedule_PlaceMainWorld();
         ((TSchedule_PlaceMainWorld*)pSchedule)->Init(1024, 1024, 4, 4);
         m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+    
+    {
+        CSchedule* pSchedule = new TSchedule_MonitorAoiTile();
+		((TSchedule_MonitorAoiTile*)pSchedule)->Init(1024, 1024, 64, 64);
+		m_vecSchedules[pSchedule->GetType()] = pSchedule;
     }
 
     InitializeCriticalSection(&cs);

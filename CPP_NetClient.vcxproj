@@ -163,6 +163,7 @@
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
     <ClInclude Include="Test\TSchedule_LoopBack.h" />
     <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
+    <ClInclude Include="Test\TSchedule_MonitorAoiTile.h" />
     <ClInclude Include="Test\TSchedule_Move.h" />
     <ClInclude Include="Test\TSchedule_PlaceMainworld.h" />
     <ClInclude Include="Zone\CBinVoxel.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="Stub\Serialization.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
+    <ClCompile Include="Test\TSchedule_MonitorAoiTile.cpp" />
     <ClCompile Include="Test\TSchedule_Move.cpp" />
     <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp" />
     <ClCompile Include="Zone\CBinVoxel.cpp" />
