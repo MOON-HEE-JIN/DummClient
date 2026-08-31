@@ -165,6 +165,7 @@
     <ClInclude Include="Test\TSchedule_LoopBack_ChangeZone.h" />
     <ClInclude Include="Test\TSchedule_LoopBack_DisReConnect.h" />
     <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
+    <ClInclude Include="Test\TSchedule_MainWorldMoveAoi.h" />
     <ClInclude Include="Test\TSchedule_MonitorAoiTile.h" />
     <ClInclude Include="Test\TSchedule_Move.h" />
     <ClInclude Include="Test\TSchedule_PlaceMainworld.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack_ChangeZone.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack_DisReConnect.cpp" />
+    <ClCompile Include="Test\TSchedule_MainWorldMoveAoi.cpp" />
     <ClCompile Include="Test\TSchedule_MonitorAoiTile.cpp" />
     <ClCompile Include="Test\TSchedule_Move.cpp" />
     <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp" />

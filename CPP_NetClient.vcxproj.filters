@@ -162,6 +162,9 @@
     <ClInclude Include="Test\TSchedule_MainWorldSetTile.h">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClInclude>
+    <ClInclude Include="Test\TSchedule_MainWorldMoveAoi.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
     <ClInclude Include="Test\TSchedule_PlaceMainworld.h">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClInclude>
@@ -258,6 +261,9 @@
       <Filter>소스 파일\TestSchedule</Filter>
     </ClCompile>
     <ClCompile Include="Test\TSchedule_LoopBack_DisReConnect.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_MainWorldMoveAoi.cpp">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClCompile>
     <ClCompile Include="Test\TSchedule_MonitorAoiTile.cpp">

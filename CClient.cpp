@@ -8,6 +8,7 @@
 #include "./NetWork/CNetWork.h"
 
 #include "Test/TSchedule_PlaceMainworld.h"
+#include "Test/TSchedule_MainWorldMoveAoi.h"
 #include "Test/TSchedule_MonitorAoiTile.h"
 static CPacketProc g_cPacketProc;
 
@@ -38,8 +39,14 @@ CClient::CClient(int Dummyid, int id)
 	m_stPos = { 0.0f, 0.0f, 0.0f };
 	m_ddRecvLoopData = -1;
 	m_iTeleportResult = -1;
+	m_iMoveStartResult = -1;
+	m_iMoveStopResult = -1;
 	m_iAoiInTransitionCount = 0;
 	m_iAoiOutTransitionCount = 0;
+	m_iAoiInEntityCount = 0;
+	m_iAoiOutEntityCount = 0;
+	m_iOtherMoveStartCount = 0;
+	m_iAoiMoveEntityCount = 0;
 
 	m_eState = ESTATE::IDEL;
 	
@@ -243,6 +250,20 @@ void CClient::NextSchedule()
 		SetWorkSchedule(new st_Schedule_ReConnect());
 	}
 	break;
+	case SCHEDULE_TYPE_MAIN_WORLD_MOVE_AOI:
+	{
+		TSchedule_MainWorldMoveAoi* pS = dynamic_cast<TSchedule_MainWorldMoveAoi*>(
+			g_DummyManager.GetSchedule(ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD_MOVE_AOI));
+		if (pS == nullptr)
+		{
+			g_LogDummy.ELog("ERROR MainWorld Move/AOI Schedule Client[%d]", m_iID);
+			SetWorkSchedule(nullptr);
+			break;
+		}
+
+		SetWorkSchedule(new st_Schedule_MainWorldMoveAoi(pS));
+	}
+	break;
 	default:
 	{
 		g_LogDummy.ELog("Nullptr Schedule_Type : %d Check : ESCHEDULE_TYPE ", m_pSchedule->GetSchedule(m_iWorkScheduleRogress));
@@ -257,6 +278,8 @@ void CClient::Clear()
 	m_iServerID = 0;
 	m_bLogin = false;
 	m_iTeleportResult = -1;
+	m_iMoveStartResult = -1;
+	m_iMoveStopResult = -1;
 	m_visiblePlayers.clear();
 	m_iZoneID = 0;
 	m_iChannel = 0;
@@ -287,6 +310,10 @@ void CClient::ResetAoiTransitionCount()
 {
 	m_iAoiInTransitionCount = 0;
 	m_iAoiOutTransitionCount = 0;
+	m_iAoiInEntityCount = 0;
+	m_iAoiOutEntityCount = 0;
+	m_iOtherMoveStartCount = 0;
+	m_iAoiMoveEntityCount = 0;
 }
 
 void CClient::Update()

@@ -4,6 +4,7 @@
 
 class CClient;
 class TSchedule_PlaceMainWorld;
+class TSchedule_MainWorldMoveAoi;
 
 enum ESCHEDULE_TEST_TYPE
 {
@@ -14,6 +15,7 @@ enum ESCHEDULE_TEST_TYPE
 	SCHEDULE_MONITOR_AOI_TILE,
 	SCHEDULE_LOOPBACK_CHANGEZONE,
 	SCHEDULE_LOOPBACK_DISRECONNECT,
+	SCHEDULE_MAIN_WORLD_MOVE_AOI,
 	SCHEDULE_END,
 };
 
@@ -33,6 +35,7 @@ enum ESCHEDULE_TYPE
 	SCHEDULE_TYPE_MONITOR_AOI_TILE,
 	SCHEDULE_TYPE_DISCONNECT,
 	SCHEDULE_TYPE_RECONNECT,
+	SCHEDULE_TYPE_MAIN_WORLD_MOVE_AOI,
 };
 
 struct st_Schedule
@@ -140,6 +143,42 @@ struct st_Schedule_MainWorldTeleport : public st_Schedule
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
 	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_MainWorldMoveAoi : public st_Schedule
+{
+	enum class EPhase
+	{
+		WAIT_TELEPORT,
+		PLACEMENT_SETTLE,
+		WAIT_MOVE_START,
+		WAIT_MOVE_STOP,
+		AOI_SETTLE,
+		MOVE_INTERVAL,
+	};
+
+	TSchedule_MainWorldMoveAoi* pOwner;
+	st_Vector3F StartPos;
+	st_Vector3F GoalPos;
+	int Cycle;
+	double PhaseStartTime;
+	EPhase Phase;
+
+	st_Schedule_MainWorldMoveAoi(TSchedule_MainWorldMoveAoi* owner)
+		: st_Schedule(SCHEDULE_TYPE_MAIN_WORLD_MOVE_AOI),
+		pOwner(owner),
+		Cycle(0),
+		PhaseStartTime(0.0),
+		Phase(EPhase::WAIT_TELEPORT)
+	{
+	}
+
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+
+private:
+	void StartMove(CClient* pClient);
+	void CompleteCycle(CClient* pClient, bool movePass, bool aoiPass);
 };
 
 struct st_Schedule_MoveStop : public st_Schedule

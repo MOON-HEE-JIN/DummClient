@@ -66,6 +66,7 @@ int CPacketProc::DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket)
 {
 	st_STC_MoveStart res;
 	pReqPacket >> res;
+	pTarget->SetMoveStartResult(res.ret);
 
 	if (res.ret != 0)
 	{
@@ -86,6 +87,12 @@ int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_MoveStop res;
 	pReqPacket >> res;
 
+	// AOI Broadcast로 받은 다른 Player의 MoveStop은 자신의 Schedule 상태를 바꾸지 않는다.
+	if (res.ID != pTarget->GetServerID())
+		return 0;
+
+	pTarget->SetMoveStopResult(res.ret);
+
 	if (res.ret != 0)
 	{
 		g_LogDummy.ELog(
@@ -102,13 +109,8 @@ int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 		return 0;
 	}
 
-	// 직접 요청의 응답은 현재 서버에서 ID가 채워지지 않을 수 있어 이동 상태도 함께 확인한다.
-	if (res.ID == pTarget->GetServerID()
-		|| pTarget->GetState() == ESTATE::MOVE_ING)
-	{
-		pTarget->Arrive(res.pos);
-		pTarget->SetState(ESTATE::MOVE_STOP);
-	}
+	pTarget->Arrive(res.pos);
+	pTarget->SetState(ESTATE::MOVE_STOP);
 
 	return 0;
 }
@@ -139,7 +141,8 @@ int CPacketProc::DO_GAME_TELEPORT(CClient* pTarget, CPacket& pReqPacket)
 		if (pSchedule == nullptr)
 			return 0;
 		if (pSchedule->GetType() != ESCHEDULE_TYPE::SCHEDULE_TYPE_TELEPORT
-			&& pSchedule->GetType() != ESCHEDULE_TYPE::SCHEDULE_TYPE_MAIN_WORLD_TELEPORT)
+			&& pSchedule->GetType() != ESCHEDULE_TYPE::SCHEDULE_TYPE_MAIN_WORLD_TELEPORT
+			&& pSchedule->GetType() != ESCHEDULE_TYPE::SCHEDULE_TYPE_MAIN_WORLD_MOVE_AOI)
 			return 0;
 
 		// 요청값 대신 서버 응답 위치를 사용해 이후 이동 오차가 누적되지 않게 한다.
@@ -163,6 +166,7 @@ int CPacketProc::DO_GAME_AOI_IN_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_AoiInPlayer res;
 	pReqPacket >> res;
 	pTarget->AddVisiblePlayer(res.info.ID);
+	pTarget->AddAoiInEntityCount(1);
 	return 0;
 }
 
@@ -179,6 +183,7 @@ int CPacketProc::DO_GAME_AOI_IN_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 
 	for (int i = 0; i < res.Loop1; ++i)
 		pTarget->AddVisiblePlayer(res.info[i].ID);
+	pTarget->AddAoiInEntityCount(res.Loop1);
 
 	return 0;
 }
@@ -188,6 +193,7 @@ int CPacketProc::DO_GAME_AOI_OUT_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_AoiOutPlayer res;
 	pReqPacket >> res;
 	pTarget->RemoveVisiblePlayer(res.ID);
+	pTarget->AddAoiOutEntityCount(1);
 	return 0;
 }
 
@@ -204,6 +210,7 @@ int CPacketProc::DO_GAME_AOI_OUT_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 
 	for (int i = 0; i < res.Loop1; ++i)
 		pTarget->RemoveVisiblePlayer(res.info[i].ID);
+	pTarget->AddAoiOutEntityCount(res.Loop1);
 
 	return 0;
 }
@@ -213,6 +220,7 @@ int CPacketProc::DO_GAME_OTHERMOVESTART(CClient* pTarget, CPacket& pReqPacket)
 	st_STC_OtherMoveStart res;
 	pReqPacket >> res;
 	pTarget->AddVisiblePlayer(res.ID);
+	pTarget->AddOtherMoveStartCount();
 	return 0;
 }
 
@@ -221,10 +229,15 @@ int CPacketProc::DO_GAME_AOI_IN_PLAYERS_MOVE(CClient* pTarget, CPacket& pReqPack
 	st_STC_AoiInPlayerMoves res;
 	pReqPacket >> res;
 
-	res.Loop1;
-	res.move[0].ID;
-	res.move[1].dir;
-	res.move[1].pos;
+	if (res.Loop1 < 0 || res.Loop1 > 50)
+	{
+		g_LogDummy.ELog("AOI_IN_PLAYERS_MOVE Invalid Count : %d", res.Loop1);
+		return 0;
+	}
+
+	for (int i = 0; i < res.Loop1; ++i)
+		pTarget->AddVisiblePlayer(res.move[i].ID);
+	pTarget->AddAoiMoveEntityCount(res.Loop1);
 
 	return 0;
 }

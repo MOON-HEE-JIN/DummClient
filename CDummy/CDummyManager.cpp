@@ -4,6 +4,7 @@
 #include "../Test/TSchedule_Move.h"
 #include "../Test/TSchedule_LoopBack.h"
 #include "../Test/TSchedule_PlaceMainworld.h"
+#include "../Test/TSchedule_MainWorldMoveAoi.h"
 #include "../Test/TSchedule_MonitorAoiTile.h"
 #include "../Test/TSchedule_LoopBack_ChangeZone.h"
 #include "../Test/TSchedule_LoopBack_DisReConnect.h"
@@ -49,6 +50,12 @@ CDummyManager::CDummyManager()
         CSchedule* pSchedule = new TSchedule_MonitorAoiTile();
 		((TSchedule_MonitorAoiTile*)pSchedule)->Init(1024, 1024, 64, 64);
 		m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_MainWorldMoveAoi();
+        ((TSchedule_MainWorldMoveAoi*)pSchedule)->Init(1024, 1024, 4, 4);
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
     }
     
     {
@@ -132,6 +139,20 @@ bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleTy
         }
 
         mainWorldSchedule->PrepareRun(m_iClientID, count);
+    }
+
+    if (scheduleType == ESCHEDULE_TEST_TYPE::SCHEDULE_MAIN_WORLD_MOVE_AOI)
+    {
+        TSchedule_MainWorldMoveAoi* mainWorldSchedule =
+            dynamic_cast<TSchedule_MainWorldMoveAoi*>(schedule);
+        if (mainWorldSchedule == nullptr || count != mainWorldSchedule->GetTileCount())
+        {
+            g_LogDummy.ELog(
+                "ERROR MainWorld Move/AOI requires one client per tile. client[%d] tile[%d]",
+                count,
+                mainWorldSchedule == nullptr ? 0 : mainWorldSchedule->GetTileCount());
+            return false;
+        }
     }
 
     const int ID = m_iDummyID++;

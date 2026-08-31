@@ -2,6 +2,7 @@
 #include "../Log/CLog.h"
 #include "../CUtill/CUtill.h"
 #include "../Test/TSchedule_PlaceMainworld.h"
+#include "../Test/TSchedule_MainWorldMoveAoi.h"
 
 namespace
 {
@@ -280,6 +281,228 @@ bool st_Schedule_MainWorldTeleport::DoSchedule(CClient* pClient)
 	++Cycle;
 	bTeleportRequested = false;
 	return false;
+}
+
+bool st_Schedule_MainWorldMoveAoi::DoInitRunSchedule(CClient* pClient)
+{
+	if (pOwner == nullptr)
+		return false;
+
+	GoalPos = pOwner->GetStartPos(pClient->GetID());
+	if (!pOwner->IsValidPosition(GoalPos))
+		return false;
+
+	pClient->BeginTeleport();
+	st_CTS_Teleport req;
+	req.pos = GoalPos;
+	CPacket packet;
+	packet << req;
+	pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
+
+	Phase = EPhase::WAIT_TELEPORT;
+	PhaseStartTime = CUtil::GetQPCNowTime();
+	return true;
+}
+
+bool st_Schedule_MainWorldMoveAoi::DoSchedule(CClient* pClient)
+{
+	if (pOwner == nullptr)
+		return false;
+
+	const double now = CUtil::GetQPCNowTime();
+	switch (Phase)
+	{
+	case EPhase::WAIT_TELEPORT:
+	{
+		const int teleportResult = pClient->GetTeleportResult();
+		if (teleportResult == -1 && now - PhaseStartTime < 15.0)
+			return false;
+
+		if (teleportResult != 0
+			|| pClient->GetPos().DistanceToNSquared(GoalPos) > 0.25f)
+		{
+			g_LogDummy.ELog(
+				"MainWorld MOVE/AOI PLACE_RETRY Client[%d] ret[%d] Pos[%.1f,%.1f] Goal[%.1f,%.1f]",
+				pClient->GetID(),
+				teleportResult,
+				pClient->GetPos().X,
+				pClient->GetPos().Z,
+				GoalPos.X,
+				GoalPos.Z);
+			DoInitRunSchedule(pClient);
+			return false;
+		}
+
+		// 최초 AOI 생성 패킷이 모두 처리된 후 Move 검증 카운터를 초기화한다.
+		pOwner->RecordPlacementReady(pClient->GetChannel());
+		Phase = EPhase::PLACEMENT_SETTLE;
+		PhaseStartTime = now;
+		return false;
+	}
+	case EPhase::PLACEMENT_SETTLE:
+		if (pOwner->CanStartCycle(pClient->GetChannel(), Cycle))
+			StartMove(pClient);
+		return false;
+	case EPhase::WAIT_MOVE_START:
+	{
+		const int moveStartResult = pClient->GetMoveStartResult();
+		if (moveStartResult == -1 && now - PhaseStartTime < 10.0)
+			return false;
+
+		if (moveStartResult != 0)
+		{
+			CompleteCycle(pClient, false, false);
+			return false;
+		}
+
+		pClient->SetState(ESTATE::MOVE_ING);
+		Phase = EPhase::WAIT_MOVE_STOP;
+		PhaseStartTime = now;
+		return false;
+	}
+	case EPhase::WAIT_MOVE_STOP:
+	{
+		const int moveStopResult = pClient->GetMoveStopResult();
+		if (moveStopResult == -1)
+		{
+			if (now - PhaseStartTime >= 30.0)
+			{
+				// 서버 자동 도착 응답이 지연되면 명시적 Stop으로 이동 상태를 회수한다.
+				SendMoveStop(pClient, pClient->GetPos());
+				PhaseStartTime = now;
+				g_LogDummy.ELog(
+					"MainWorld MOVE/AOI MOVE_STOP_TIMEOUT Client[%d] Cycle[%d]",
+					pClient->GetID(),
+					Cycle);
+			}
+			return false;
+		}
+
+		if (moveStopResult != 0)
+		{
+			CompleteCycle(pClient, false, false);
+			return false;
+		}
+
+		Phase = EPhase::AOI_SETTLE;
+		PhaseStartTime = now;
+		return false;
+	}
+	case EPhase::AOI_SETTLE:
+	{
+		if (now - PhaseStartTime < pOwner->GetAoiSettleTime())
+			return false;
+
+		const bool movePass = pClient->GetMoveStartResult() == 0
+			&& pClient->GetMoveStopResult() == 0
+			&& pClient->GetPos().DistanceToNSquared(GoalPos) <= 0.25f;
+		// 월드 가장자리 방향에는 AOI IN 또는 OUT strip 자체가 없으므로 예상 이벤트만 검사한다.
+		const bool expectAoiIn = pOwner->IsAoiInExpected(StartPos, GoalPos);
+		const bool expectAoiOut = pOwner->IsAoiOutExpected(StartPos, GoalPos);
+		const bool aoiPass = (!expectAoiIn || pClient->GetAoiInEntityCount() > 0)
+			&& (!expectAoiOut || pClient->GetAoiOutEntityCount() > 0);
+		CompleteCycle(pClient, movePass, aoiPass);
+		return false;
+	}
+	case EPhase::MOVE_INTERVAL:
+		if (pOwner->CanStartCycle(pClient->GetChannel(), Cycle))
+			StartMove(pClient);
+		return false;
+	default:
+		return false;
+	}
+}
+
+void st_Schedule_MainWorldMoveAoi::StartMove(CClient* pClient)
+{
+	StartPos = pClient->GetPos();
+	GoalPos = pOwner->GetMoveGoal(StartPos);
+	if (!pOwner->IsValidPosition(GoalPos))
+	{
+		g_LogDummy.ELog(
+			"MainWorld MOVE/AOI INVALID_GOAL Client[%d] Pos[%.1f,%.1f] Goal[%.1f,%.1f]",
+			pClient->GetID(),
+			StartPos.X,
+			StartPos.Z,
+			GoalPos.X,
+			GoalPos.Z);
+		CompleteCycle(pClient, false, false);
+		return;
+	}
+
+	pClient->ResetAoiTransitionCount();
+	pClient->BeginMove();
+	pClient->SetState(ESTATE::IDEL);
+
+	st_CTS_MoveStart req;
+	req.pos = StartPos;
+	req.goal = GoalPos;
+	req.dir = StartPos.Direction(GoalPos);
+	CPacket packet;
+	packet << req;
+	pClient->SendEnqueuePacket(*packet.GetBufferPtr(), &packet);
+
+	Phase = EPhase::WAIT_MOVE_START;
+	PhaseStartTime = CUtil::GetQPCNowTime();
+}
+
+void st_Schedule_MainWorldMoveAoi::CompleteCycle(
+	CClient* pClient,
+	bool movePass,
+	bool aoiPass)
+{
+	const st_Vector3F actual = pClient->GetPos();
+	const bool expectAoiIn = pOwner->IsAoiInExpected(StartPos, GoalPos);
+	const bool expectAoiOut = pOwner->IsAoiOutExpected(StartPos, GoalPos);
+	g_LogDummy.ILog(
+		"MainWorld MOVE/AOI_%s Channel[%d] Cycle[%d] Client[%d]\n"
+		"\tTile[%d,%d]->[%d,%d] Grid[%d]->[%d] Result[Move:%s AOI:%s] MoveRet[%d,%d]\n"
+		"\tAOI[Expected:%d/%d In:%d/%d Out:%d/%d OtherMove:%d MoveSnapshot:%d Visible:%d]",
+		(movePass && aoiPass) ? "PASS" : "FAIL",
+		pClient->GetChannel(),
+		Cycle,
+		pClient->GetID(),
+		pOwner->GetTileX(StartPos),
+		pOwner->GetTileZ(StartPos),
+		pOwner->GetTileX(actual),
+		pOwner->GetTileZ(actual),
+		pOwner->GetManagementGrid(StartPos),
+		pOwner->GetManagementGrid(actual),
+		movePass ? "PASS" : "FAIL",
+		aoiPass ? "PASS" : "FAIL",
+		pClient->GetMoveStartResult(),
+		pClient->GetMoveStopResult(),
+		expectAoiIn ? 1 : 0,
+		expectAoiOut ? 1 : 0,
+		pClient->GetAoiInTransitionCount(),
+		pClient->GetAoiInEntityCount(),
+		pClient->GetAoiOutTransitionCount(),
+		pClient->GetAoiOutEntityCount(),
+		pClient->GetOtherMoveStartCount(),
+		pClient->GetAoiMoveEntityCount(),
+		pClient->GetVisiblePlayerCount());
+
+	TSchedule_MainWorldMoveAoi::st_CycleSummary summary;
+	if (pOwner->RecordCycleResult(
+		pClient->GetChannel(), Cycle, movePass, aoiPass, summary))
+	{
+		g_LogDummy.ILog(
+			"\n=======================================================================\n"
+			"\tMainWorld MOVE/AOI SUMMARY Channel[%d] Cycle[%d] Client[%d]\n"
+			"\tMovePass[%d] MoveFail[%d] AoiPass[%d] AoiFail[%d]\n"
+			"=======================================================================",
+			pClient->GetChannel(),
+			Cycle,
+			summary.ClientCount,
+			summary.MovePassCount,
+			summary.ClientCount - summary.MovePassCount,
+			summary.AoiPassCount,
+			summary.ClientCount - summary.AoiPassCount);
+	}
+
+	++Cycle;
+	Phase = EPhase::MOVE_INTERVAL;
+	PhaseStartTime = CUtil::GetQPCNowTime();
 }
 
 bool st_Schedule_MoveStop::DoInitRunSchedule(CClient* pClient)

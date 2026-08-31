@@ -57,9 +57,15 @@ private:
 	float m_fMoveSpeed;
 	__int64 m_ddRecvLoopData;
 	int m_iTeleportResult;
+	int m_iMoveStartResult;
+	int m_iMoveStopResult;
 	std::unordered_set<int> m_visiblePlayers;
 	int m_iAoiInTransitionCount;
 	int m_iAoiOutTransitionCount;
+	int m_iAoiInEntityCount;
+	int m_iAoiOutEntityCount;
+	int m_iOtherMoveStartCount;
+	int m_iAoiMoveEntityCount;
 
 public:
 	void Init(int channel, int zone, CSchedule* pSchedule);
@@ -93,9 +99,15 @@ public:
 	st_Vector3F GetPos() { return m_stPos; }
 	ESTATE GetState() { return m_eState; }
 	int GetTeleportResult() const { return m_iTeleportResult; }
+	int GetMoveStartResult() const { return m_iMoveStartResult; }
+	int GetMoveStopResult() const { return m_iMoveStopResult; }
 	int GetVisiblePlayerCount() const { return static_cast<int>(m_visiblePlayers.size()); }
 	int GetAoiInTransitionCount() const { return m_iAoiInTransitionCount; }
 	int GetAoiOutTransitionCount() const { return m_iAoiOutTransitionCount; }
+	int GetAoiInEntityCount() const { return m_iAoiInEntityCount; }
+	int GetAoiOutEntityCount() const { return m_iAoiOutEntityCount; }
+	int GetOtherMoveStartCount() const { return m_iOtherMoveStartCount; }
+	int GetAoiMoveEntityCount() const { return m_iAoiMoveEntityCount; }
 
 public:
 	void AddCompleteScheduleCount() { m_iCompleteScheduleCount.fetch_add(1); }
@@ -104,9 +116,20 @@ public:
 	void Arrive(st_Vector3F pos) { m_stPos = pos; }
 	void BeginTeleport() { m_iTeleportResult = -1; }
 	void SetTeleportResult(int result) { m_iTeleportResult = result; }
+	void BeginMove()
+	{
+		m_iMoveStartResult = -1;
+		m_iMoveStopResult = -1;
+	}
+	void SetMoveStartResult(int result) { m_iMoveStartResult = result; }
+	void SetMoveStopResult(int result) { m_iMoveStopResult = result; }
 	void AddVisiblePlayer(int id);
 	void RemoveVisiblePlayer(int id);
 	void ResetAoiTransitionCount();
+	void AddAoiInEntityCount(int count) { m_iAoiInEntityCount += count; }
+	void AddAoiOutEntityCount(int count) { m_iAoiOutEntityCount += count; }
+	void AddOtherMoveStartCount() { ++m_iOtherMoveStartCount; }
+	void AddAoiMoveEntityCount(int count) { m_iAoiMoveEntityCount += count; }
 
 public:
 	void ConnectServerLoginThread(int id) { m_iServerID = id; m_bLogin = true; };	// 서버 로그인 thread 접속 완
