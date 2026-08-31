@@ -24,6 +24,9 @@ public:
 		CloseSocket();
 		Clear();
 	}
+
+	void ReConnect();
+	
 private:
 	int m_iManagementDummyID;		// 관리하는 CDummy ID
 	int m_iID;
@@ -73,6 +76,7 @@ public:
 	void SetChangeZone(int channel, int zoneID) { m_iZoneID = zoneID; m_iChannel = channel; }
 	void SetState(ESTATE state) { m_eState = state; }
 	void SetRecvLoopBack(__int64 value) { m_ddRecvLoopData = value; }
+	void SetConsistentTime(int time);
 
 	bool GetLogin() { return m_bLogin; }
 	int GetID() { return m_iID; }

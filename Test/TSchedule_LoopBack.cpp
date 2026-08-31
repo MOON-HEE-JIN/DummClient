@@ -3,7 +3,7 @@
 
 TSchedule_LoopBack::TSchedule_LoopBack()
 {
-	m_iType = ESCHEDULE_TEST_TYPE::SCHEDULE_RETURN_ZONE;
+	m_iType = ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK;
 
 	m_vecSchedules.push_back(SCHEDULE_TYPE_LOOPBACK);		
 }

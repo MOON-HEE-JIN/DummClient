@@ -165,6 +165,15 @@
     <ClInclude Include="Test\TSchedule_PlaceMainworld.h">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClInclude>
+    <ClInclude Include="Test\TSchedule_LoopBack_ChangeZone.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_LoopBack_DisReConnect.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
+    <ClInclude Include="Test\TSchedule_MonitorAoiTile.h">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetWork\CNetWork.cpp">
@@ -243,6 +252,15 @@
       <Filter>소스 파일\TestSchedule</Filter>
     </ClCompile>
     <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_LoopBack_ChangeZone.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_LoopBack_DisReConnect.cpp">
+      <Filter>소스 파일\TestSchedule</Filter>
+    </ClCompile>
+    <ClCompile Include="Test\TSchedule_MonitorAoiTile.cpp">
       <Filter>소스 파일\TestSchedule</Filter>
     </ClCompile>
   </ItemGroup>

@@ -53,6 +53,18 @@ bool st_Schedule_LoginChangeZone::DoSchedule(CClient* pClient)
 
 bool st_Schedule_ChangeZone::DoInitRunSchedule(CClient* pClient)
 {
+	// channel 0, 1
+	// zone 2,3,4,5,6  -  2,3,4,5,6
+	/*
+		
+		Proc[2] channel : 0 Zone[2]		  Proc[3] channel : 1 Zone[3]
+		Proc[2] channel : 0 Zone[4]		  Proc[3] channel : 1 Zone[5]
+		Proc[2] channel : 0 Zone[6]		  Proc[3] channel : 1 Zone[7]
+		
+		Proc[2] channel : 1 Zone[2]		  Proc[3] channel : 0 Zone[3]
+		Proc[2] channel : 1 Zone[4]		  Proc[3] channel : 0 Zone[5]
+		Proc[2] channel : 1 Zone[6]		  Proc[3] channel : 0 Zone[7]
+	*/
 	switch (pClient->GetChannel())
 	{
 	case 0:
@@ -62,26 +74,28 @@ bool st_Schedule_ChangeZone::DoInitRunSchedule(CClient* pClient)
 		iChannel = 0;
 		break;
 	default:
-		iChannel = 2;
 		break;
 	}
 	switch (pClient->GetZoneID())
 	{
-	case 3: // proc 1
-	case 6: // proc 1
-		iZoneID = 1;
+	case 2:
+		iZoneID = 3;
 		break;
-	case 1: // proc 2
+	case 3:
+		iZoneID = 2;
+		break;
+	case 4:
+		iZoneID = 5;
+		break;
+	case 5:
 		iZoneID = 4;
 		break;
-	case 4: // proc 2
-		iZoneID = 1;
+	case 6:
+		iZoneID = 7;
 		break;
-	case 2: // proc 3
-	case 5: // proc 3
-		iZoneID = 4;
+	case 7:
+		iZoneID = 6;
 		break;
-
 	default:
 		iZoneID = 6;
 		break;
@@ -118,7 +132,7 @@ bool st_Schedule_ReturnZone::DoInitRunSchedule(CClient* pClient)
 
 	CPacket packet;
 	st_CTS_ChangeZone req;
-	// 로그인 스레드에서 벗어나기 위해 Zone 이동 패킷 전송
+
 	req.zone = iZoneID;
 	req.channel = iChannel;
 
@@ -296,12 +310,19 @@ bool st_Schedule_LoopBack::DoInitRunSchedule(CClient* pClient)
 	CPacket cPacket;
 	cPacket << req;
 	pClient->SendEnqueuePacket((*cPacket.GetBufferPtr()), &cPacket);
-
+	SendEnqueueTime = CUtil::GetQPCNowTime();
 	return true;
 }
 
 bool st_Schedule_LoopBack::DoSchedule(CClient* pClient)
 {
+	double time = CUtil::GetQPCNowTime();
+	// 5s 이상 이라면
+	if (time - SendEnqueueTime > 20)
+	{
+		g_LogDummy.ELog("LoopBack Schedule Over 20 Second");
+		return false;
+	}
 	if (pClient->GetRecvLoopBack() == data)
 		return true;
 	return false;
@@ -349,6 +370,44 @@ bool st_Schedule_Delay::DoSchedule(CClient* pClient)
 			if (time - StartTime >= DelayTime)
 				return true;
 		}
+	}
+	return false;
+}
+
+bool st_Schedule_DisConnect::DoInitRunSchedule(CClient* pClient)
+{
+	// DisConnect 하면 Session 에 대한 delete 처리하면서 오류 발생 임시로 Cnt 증가하여 delete 방지
+	pClient->IncrementIOCnt();
+	pClient->DisConnect();
+	DelayTime = CUtil::GetQPCNowTime();
+	return true;
+}
+
+bool st_Schedule_DisConnect::DoSchedule(CClient* pClient)
+{
+	double time = CUtil::GetQPCNowTime();
+	// DisConnect() 후 Server 에서 5초후에 Session 에 대한 정리를 한다
+	// 로그로 끊김과 연결을 편히 확인하기 위해서는 10초후에 연결 해야한다
+	if (time - DelayTime < 10)
+		return false;
+	if (pClient->GetLogin() == false)
+		return true;
+	return false;
+}
+
+bool st_Schedule_ReConnect::DoInitRunSchedule(CClient* pClient)
+{
+	pClient->ReConnect();
+	return true;
+}
+
+bool st_Schedule_ReConnect::DoSchedule(CClient* pClient)
+{
+	if (pClient->GetConnect() == true)
+	{
+		// Disconnect 에서한 증가 했기에 연결시 감소
+		pClient->DecrementIOCnt();
+		return true;
 	}
 	return false;
 }

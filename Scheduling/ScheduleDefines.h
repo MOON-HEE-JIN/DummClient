@@ -12,6 +12,8 @@ enum ESCHEDULE_TEST_TYPE
 	SCHEDULE_LOOPBACK,
 	SCHEDULE_MAIN_WORLD,
 	SCHEDULE_MONITOR_AOI_TILE,
+	SCHEDULE_LOOPBACK_CHANGEZONE,
+	SCHEDULE_LOOPBACK_DISRECONNECT,
 	SCHEDULE_END,
 };
 
@@ -29,6 +31,8 @@ enum ESCHEDULE_TYPE
 	SCHEDULE_TYPE_MAIN_WORLD_TELEPORT,
 	SCHEDULE_TYPE_DELAY,
 	SCHEDULE_TYPE_MONITOR_AOI_TILE,
+	SCHEDULE_TYPE_DISCONNECT,
+	SCHEDULE_TYPE_RECONNECT,
 };
 
 struct st_Schedule
@@ -155,11 +159,12 @@ struct st_Schedule_MoveStop : public st_Schedule
 struct st_Schedule_LoopBack : public st_Schedule
 {
 	__int64 data;
-	
+	double SendEnqueueTime;
 	st_Schedule_LoopBack()
 		: st_Schedule(SCHEDULE_TYPE_LOOPBACK)
 	{
 		data = 0;
+		SendEnqueueTime = 0;
 	}
 
 	virtual bool DoInitRunSchedule(CClient* pClient) override;
@@ -197,3 +202,25 @@ struct st_Schedule_Delay : public st_Schedule
 	virtual bool DoSchedule(CClient* pClient) override;
 };
 
+struct st_Schedule_DisConnect : public st_Schedule
+{
+	double DelayTime;
+	st_Schedule_DisConnect()
+		: st_Schedule(SCHEDULE_TYPE_DISCONNECT)
+	{
+		DelayTime = 0;
+	}
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};
+
+struct st_Schedule_ReConnect : public st_Schedule
+{
+	st_Schedule_ReConnect()
+		: st_Schedule(SCHEDULE_TYPE_RECONNECT)
+	{
+
+	}
+	virtual bool DoInitRunSchedule(CClient* pClient) override;
+	virtual bool DoSchedule(CClient* pClient) override;
+};

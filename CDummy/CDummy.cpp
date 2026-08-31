@@ -62,6 +62,11 @@ bool CDummy::CreateDummyClient()
 			return false;
 		}
 		pClient->Init(m_iDummyChannel, m_iDummyZone, m_pSchedule);
+		
+		// SendDelayTime 을 일관되서 맞춰서 테스트
+		if (m_iConsistentTime > 0)
+			pClient->SetConsistentTime(m_iConsistentTime);
+
 		m_DummyClients.push_back(pClient);
 	}
 
@@ -116,6 +121,9 @@ bool CDummy::Init(int channel, int zone, CSchedule* pSchedule)
 	m_iDummyChannel = channel;
 	m_iDummyZone = zone;
 	m_pSchedule = pSchedule;
-
+	if (pSchedule->GetType() == ESCHEDULE_TEST_TYPE::SCHEDULE_LOOPBACK_DISRECONNECT)
+	{
+		m_iConsistentTime = 5 * 100;
+	}
 	return CreateDummyClient();
 }

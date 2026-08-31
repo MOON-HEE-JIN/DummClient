@@ -5,6 +5,7 @@
 #include "CDummy/DummyDef.h"
 #include "Log/CLog.h"
 #include "CDummy/CDummyManager.h"
+#include "./NetWork/CNetWork.h"
 
 #include "Test/TSchedule_PlaceMainworld.h"
 #include "Test/TSchedule_MonitorAoiTile.h"
@@ -62,6 +63,20 @@ void CClient::OnRecv(int type, CPacket& cPacket, LONGLONG recvtime)
 	const double time = static_cast<double>(recvtime - sendtime) * 1000.0
 		/ static_cast<double>(freq.QuadPart); // ms
 	m_dLatencyTime.store(time);
+}
+
+void CClient::ReConnect()
+{
+	CDummy* pDummy = g_DummyManager.GetDummy(m_iManagementDummyID);
+	if (pDummy == nullptr)
+		return;
+
+	int ret = Connect(pDummy->GetIP(), pDummy->GetPort(), (HANDLE)GetCICPPort());
+
+	if (ret != 0)
+	{
+		g_LogDummy.ELog("ERROR Create Client[%d] WSA[%d]", GetID(), ret);
+	}
 }
 
 void CClient::Init(int channel, int zone, CSchedule* pSchedule)
@@ -218,8 +233,21 @@ void CClient::NextSchedule()
 		SetWorkSchedule(pSchedule);
 	}
 	break;
+	case SCHEDULE_TYPE_DISCONNECT:
+	{
+		SetWorkSchedule(new st_Schedule_DisConnect());
+	}
+	break;
+	case SCHEDULE_TYPE_RECONNECT:
+	{
+		SetWorkSchedule(new st_Schedule_ReConnect());
+	}
+	break;
 	default:
+	{
+		g_LogDummy.ELog("Nullptr Schedule_Type : %d Check : ESCHEDULE_TYPE ", m_pSchedule->GetSchedule(m_iWorkScheduleRogress));
 		SetWorkSchedule(nullptr);
+	}
 		break;
 	}
 }
@@ -230,7 +258,14 @@ void CClient::Clear()
 	m_bLogin = false;
 	m_iTeleportResult = -1;
 	m_visiblePlayers.clear();
+	m_iZoneID = 0;
+	m_iChannel = 0;
 	ResetAoiTransitionCount();
+}
+
+void CClient::SetConsistentTime(int time)
+{
+	m_iSendDelay = time;
 }
 
 void CClient::AddVisiblePlayer(int id)

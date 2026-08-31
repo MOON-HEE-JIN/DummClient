@@ -120,7 +120,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +162,8 @@
     <ClInclude Include="Stub\StructDef.h" />
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
     <ClInclude Include="Test\TSchedule_LoopBack.h" />
+    <ClInclude Include="Test\TSchedule_LoopBack_ChangeZone.h" />
+    <ClInclude Include="Test\TSchedule_LoopBack_DisReConnect.h" />
     <ClInclude Include="Test\TSchedule_MainWorldSetTile.h" />
     <ClInclude Include="Test\TSchedule_MonitorAoiTile.h" />
     <ClInclude Include="Test\TSchedule_Move.h" />
@@ -195,6 +197,8 @@
     <ClCompile Include="Stub\Serialization.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
+    <ClCompile Include="Test\TSchedule_LoopBack_ChangeZone.cpp" />
+    <ClCompile Include="Test\TSchedule_LoopBack_DisReConnect.cpp" />
     <ClCompile Include="Test\TSchedule_MonitorAoiTile.cpp" />
     <ClCompile Include="Test\TSchedule_Move.cpp" />
     <ClCompile Include="Test\TSchedule_PlaceMainworld.cpp" />

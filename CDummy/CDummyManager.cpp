@@ -5,6 +5,9 @@
 #include "../Test/TSchedule_LoopBack.h"
 #include "../Test/TSchedule_PlaceMainworld.h"
 #include "../Test/TSchedule_MonitorAoiTile.h"
+#include "../Test/TSchedule_LoopBack_ChangeZone.h"
+#include "../Test/TSchedule_LoopBack_DisReConnect.h"
+
 
 #include "../Log/CLog.h"
 #include <process.h>
@@ -46,6 +49,16 @@ CDummyManager::CDummyManager()
         CSchedule* pSchedule = new TSchedule_MonitorAoiTile();
 		((TSchedule_MonitorAoiTile*)pSchedule)->Init(1024, 1024, 64, 64);
 		m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+    
+    {
+        CSchedule* pSchedule = new TSchedule_LoopBack_ChangeZone();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
+    }
+
+    {
+        CSchedule* pSchedule = new TSchedule_LoopBack_DisReConnect();
+        m_vecSchedules[pSchedule->GetType()] = pSchedule;
     }
 
     InitializeCriticalSection(&cs);
@@ -137,6 +150,13 @@ bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleTy
     RegisterThread(pDummy);
   
     return true;
+}
+
+CDummy* CDummyManager::GetDummy(int id)
+{
+    if (m_mapDummys.find(id) == m_mapDummys.end())
+        return nullptr;
+    return m_mapDummys[id];
 }
 
 void CDummyManager::AddDummyClient(CClient* pClient)
