@@ -454,34 +454,37 @@ void st_Schedule_MainWorldMoveAoi::CompleteCycle(
 	const st_Vector3F actual = pClient->GetPos();
 	const bool expectAoiIn = pOwner->IsAoiInExpected(StartPos, GoalPos);
 	const bool expectAoiOut = pOwner->IsAoiOutExpected(StartPos, GoalPos);
-	g_LogDummy.ILog(
-		"MainWorld MOVE/AOI_%s Channel[%d] Cycle[%d] Client[%d]\n"
-		"\tTile[%d,%d]->[%d,%d] Grid[%d]->[%d] Result[Move:%s AOI:%s] MoveRet[%d,%d]\n"
-		"\tAOI[Expected:%d/%d In:%d/%d Out:%d/%d OtherMove:%d MoveSnapshot:%d Visible:%d]",
-		(movePass && aoiPass) ? "PASS" : "FAIL",
-		pClient->GetChannel(),
-		Cycle,
-		pClient->GetID(),
-		pOwner->GetTileX(StartPos),
-		pOwner->GetTileZ(StartPos),
-		pOwner->GetTileX(actual),
-		pOwner->GetTileZ(actual),
-		pOwner->GetManagementGrid(StartPos),
-		pOwner->GetManagementGrid(actual),
-		movePass ? "PASS" : "FAIL",
-		aoiPass ? "PASS" : "FAIL",
-		pClient->GetMoveStartResult(),
-		pClient->GetMoveStopResult(),
-		expectAoiIn ? 1 : 0,
-		expectAoiOut ? 1 : 0,
-		pClient->GetAoiInTransitionCount(),
-		pClient->GetAoiInEntityCount(),
-		pClient->GetAoiOutTransitionCount(),
-		pClient->GetAoiOutEntityCount(),
-		pClient->GetOtherMoveStartCount(),
-		pClient->GetAoiMoveEntityCount(),
-		pClient->GetVisiblePlayerCount());
-
+	if (!movePass || !aoiPass)
+	{
+		g_LogDummy.ILog(
+			"MainWorld MOVE/AOI_%s Channel[%d] Cycle[%d] Client[%d]\n"
+			"\tTile[%d,%d]->[%d,%d] Grid[%d]->[%d] Result[Move:%s AOI:%s] MoveRet[%d,%d]\n"
+			"\tAOI[Expected:%d/%d In:%d/%d Out:%d/%d OtherMove:%d MoveSnapshot:%d Visible:%d]",
+			(movePass && aoiPass) ? "PASS" : "FAIL",
+			pClient->GetChannel(),
+			Cycle,
+			pClient->GetID(),
+			pOwner->GetTileX(StartPos),
+			pOwner->GetTileZ(StartPos),
+			pOwner->GetTileX(actual),
+			pOwner->GetTileZ(actual),
+			pOwner->GetManagementGrid(StartPos),
+			pOwner->GetManagementGrid(actual),
+			movePass ? "PASS" : "FAIL",
+			aoiPass ? "PASS" : "FAIL",
+			pClient->GetMoveStartResult(),
+			pClient->GetMoveStopResult(),
+			expectAoiIn ? 1 : 0,
+			expectAoiOut ? 1 : 0,
+			pClient->GetAoiInTransitionCount(),
+			pClient->GetAoiInEntityCount(),
+			pClient->GetAoiOutTransitionCount(),
+			pClient->GetAoiOutEntityCount(),
+			pClient->GetOtherMoveStartCount(),
+			pClient->GetAoiMoveEntityCount(),
+			pClient->GetVisiblePlayerCount());
+	}
+	
 	TSchedule_MainWorldMoveAoi::st_CycleSummary summary;
 	if (pOwner->RecordCycleResult(
 		pClient->GetChannel(), Cycle, movePass, aoiPass, summary))
@@ -501,6 +504,7 @@ void st_Schedule_MainWorldMoveAoi::CompleteCycle(
 	}
 
 	++Cycle;
+	pClient->AddCompleteScheduleCount();
 	Phase = EPhase::MOVE_INTERVAL;
 	PhaseStartTime = CUtil::GetQPCNowTime();
 }

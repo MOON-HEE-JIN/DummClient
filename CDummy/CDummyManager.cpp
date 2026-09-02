@@ -242,8 +242,8 @@ void CDummyManager::Run(const int id)
             if (!m_iLatencyTime.compare_exchange_strong(previousLogTime, now))
                 continue;
 
-            g_LogDummy.ILog("MaxTime : %.3f, MinTime : %.3f, AvgTime : %.3f, MaxComplete : %d, MinComplete : %d",
-                maxTime, minTime, avgTime, maxComplete, minComplete);
+            g_LogDummy.ILog("T[%d] MaxTime : %.3f, MinTime : %.3f, AvgTime : %.3f, MaxComplete : %d, MinComplete : %d",
+                id, maxTime, minTime, avgTime, maxComplete, minComplete);
         }
     }
 }
