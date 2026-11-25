@@ -8,7 +8,7 @@ namespace
 {
 	void SendMoveStop(CClient* pClient, const st_Vector3F& pos)
 	{
-		st_CTS_MoveStop req;
+		Rpc::GameClient::st_CTS_MoveStop req;
 		req.pos = pos;
 
 		CPacket packet;
@@ -29,7 +29,7 @@ bool st_Schedule_Login::DoSchedule(CClient* pClient)
 bool st_Schedule_LoginChangeZone::DoInitRunSchedule(CClient* pClient)
 {
 	CPacket packet;
-	st_CTS_ChangeZone req;
+	Rpc::GameClient::st_CTS_ChangeZone req;
 	// 로그인 스레드에서 벗어나기 위해 Zone 이동 패킷 전송
 	req.zone = pClient->GetDeafultZoneID();
 	req.channel = pClient->GetDefaultChannel();
@@ -103,7 +103,7 @@ bool st_Schedule_ChangeZone::DoInitRunSchedule(CClient* pClient)
 	}
 
 	CPacket packet;
-	st_CTS_ChangeZone req;
+	Rpc::GameClient::st_CTS_ChangeZone req;
 
 	req.channel = iChannel;
 	req.zone = iZoneID;
@@ -132,7 +132,7 @@ bool st_Schedule_ReturnZone::DoInitRunSchedule(CClient* pClient)
 	iChannel = pClient->GetDefaultChannel();
 
 	CPacket packet;
-	st_CTS_ChangeZone req;
+	Rpc::GameClient::st_CTS_ChangeZone req;
 
 	req.zone = iZoneID;
 	req.channel = iChannel;
@@ -163,7 +163,7 @@ bool st_Schedule_MoveStart::DoInitRunSchedule(CClient* pClient)
 	bStopRequested = false;
 	pClient->SetState(ESTATE::IDEL);
 
-	st_CTS_MoveStart req;
+	Rpc::GameClient::st_CTS_MoveStart req;
 	req.pos = StartPos;
 	req.goal = EndPos;
 	req.dir = Dir;
@@ -238,7 +238,7 @@ bool st_Schedule_MainWorldTeleport::DoSchedule(CClient* pClient)
 		GoalPos = pOwner->GetCyclePos(pClient->GetID(), Cycle);
 		pClient->BeginTeleport();
 
-		st_CTS_Teleport req;
+		Rpc::GameClient::st_CTS_Teleport req;
 		req.pos = GoalPos;
 		CPacket packet;
 		packet << req;
@@ -293,7 +293,7 @@ bool st_Schedule_MainWorldMoveAoi::DoInitRunSchedule(CClient* pClient)
 		return false;
 
 	pClient->BeginTeleport();
-	st_CTS_Teleport req;
+	Rpc::GameClient::st_CTS_Teleport req;
 	req.pos = GoalPos;
 	CPacket packet;
 	packet << req;
@@ -434,7 +434,7 @@ void st_Schedule_MainWorldMoveAoi::StartMove(CClient* pClient)
 	pClient->BeginMove();
 	pClient->SetState(ESTATE::IDEL);
 
-	st_CTS_MoveStart req;
+	Rpc::GameClient::st_CTS_MoveStart req;
 	req.pos = StartPos;
 	req.goal = GoalPos;
 	req.dir = StartPos.Direction(GoalPos);
@@ -513,7 +513,7 @@ bool st_Schedule_MoveStop::DoInitRunSchedule(CClient* pClient)
 {
 	StopPos = pClient->GetPos();
 
-	st_CTS_MoveStop req;
+	Rpc::GameClient::st_CTS_MoveStop req;
 	req.pos = StopPos;
 
 	CPacket packet;
@@ -531,7 +531,7 @@ bool st_Schedule_MoveStop::DoSchedule(CClient* pClient)
 bool st_Schedule_LoopBack::DoInitRunSchedule(CClient* pClient)
 {
 	data = CUtil::Random(0, 100000);
-	st_CTS_LoopBack req;
+	Rpc::GameClient::st_CTS_LoopBack req;
 	req.data = static_cast<double>(data);
 
 	CPacket cPacket;
@@ -559,7 +559,7 @@ bool st_Schedule_Teleport::DoInitRunSchedule(CClient* pClient)
 {
 	pClient->BeginTeleport();
 
-	st_CTS_Teleport req;
+	Rpc::GameClient::st_CTS_Teleport req;
 	req.pos = GoalPos;
 
 	CPacket cPacket;

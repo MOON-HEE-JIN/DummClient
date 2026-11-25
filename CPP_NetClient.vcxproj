@@ -23,6 +23,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ServerProjectsDir Condition="'$(Platform)'=='x64'">$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', 'GameServer\ThirdParty\curl\bin\libcurl-x64.def'))</ServerProjectsDir>
+    <GameThirdParty Condition="'$(ServerProjectsDir)'!=''">$(ServerProjectsDir)\GameServer\ThirdParty</GameThirdParty>
+    <VcpkgEnableManifest Condition="'$(GameThirdParty)'==''">true</VcpkgEnableManifest>
+    <VcpkgEnableManifest Condition="'$(GameThirdParty)'!=''">false</VcpkgEnableManifest>
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{5546d113-2510-4e4d-a4de-2d69b402f2c2}</ProjectGuid>
@@ -163,6 +167,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Http\CHttpClient.h" />
     <ClInclude Include="CClient.h" />
     <ClInclude Include="CDummy\CDummy.h" />
     <ClInclude Include="CDummy\CDummyManager.h" />
@@ -189,12 +194,17 @@
     <ClInclude Include="NetWork\CSession.h" />
     <ClInclude Include="Scheduling\CSchedule.h" />
     <ClInclude Include="Scheduling\ScheduleDefines.h" />
-    <ClInclude Include="Stub\CLIENT_STUB.h" />
-    <ClInclude Include="Stub\EnumDef.h" />
-    <ClInclude Include="Stub\PacketEnumDef.h" />
+    <ClInclude Include="Stub\ChatClient.ChatServerToClientStub.g.h" />
+    <ClInclude Include="Stub\GameClient.GameServerToClientStub.g.h" />
+    <ClInclude Include="Stub\ChatClient.EnumDef.g.h" />
+    <ClInclude Include="Stub\GameClient.EnumDef.g.h" />
+    <ClInclude Include="Stub\ChatClient.PacketEnumDef.g.h" />
+    <ClInclude Include="Stub\GameClient.PacketEnumDef.g.h" />
     <ClInclude Include="Stub\ProjectDefineStruct.h" />
-    <ClInclude Include="Stub\Serialization.h" />
-    <ClInclude Include="Stub\StructDef.h" />
+    <ClInclude Include="Stub\ChatClient.Serialization.g.h" />
+    <ClInclude Include="Stub\GameClient.Serialization.g.h" />
+    <ClInclude Include="Stub\ChatClient.StructDef.g.h" />
+    <ClInclude Include="Stub\GameClient.StructDef.g.h" />
     <ClInclude Include="Test\TSchedule_Change_Zone.h" />
     <ClInclude Include="Test\TSchedule_LoopBack.h" />
     <ClInclude Include="Test\TSchedule_LoopBack_ChangeZone.h" />
@@ -210,6 +220,7 @@
     <ClInclude Include="Zone\ZoneDefines.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Http\CHttpClient.cpp" />
     <ClCompile Include="CClient.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -229,8 +240,10 @@
     <ClCompile Include="NetWork\CSession.cpp" />
     <ClCompile Include="Scheduling\CSchedule.cpp" />
     <ClCompile Include="Scheduling\ScheduleDefines.cpp" />
-    <ClCompile Include="Stub\CLIENT_STUB.cpp" />
-    <ClCompile Include="Stub\Serialization.cpp" />
+    <ClCompile Include="Stub\ChatClient.ChatServerToClientStub.g.cpp" />
+    <ClCompile Include="Stub\GameClient.GameServerToClientStub.g.cpp" />
+    <ClCompile Include="Stub\ChatClient.Serialization.g.cpp" />
+    <ClCompile Include="Stub\GameClient.Serialization.g.cpp" />
     <ClCompile Include="Test\TSchedule_Change_Zone.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack.cpp" />
     <ClCompile Include="Test\TSchedule_LoopBack_ChangeZone.cpp" />
@@ -243,7 +256,22 @@
     <ClCompile Include="Zone\CBinZone.cpp" />
     <ClCompile Include="Zone\CBinZoneIdx.cpp" />
   </ItemGroup>
+  <ItemDefinitionGroup Condition="'$(GameThirdParty)'!=''">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(GameThirdParty)\curl\include;$(GameThirdParty)\Json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(IntDir)libcurl-msvc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Target Name="GenerateCurlImportLibrary" BeforeTargets="Link" Condition="'$(GameThirdParty)'!=''" Inputs="$(GameThirdParty)\curl\bin\libcurl-x64.def" Outputs="$(IntDir)libcurl-msvc.lib">
+    <Exec Command="&quot;$(VCToolsInstallDir)bin\Hostx64\x64\lib.exe&quot; /nologo /machine:x64 /name:libcurl-x64.dll /def:&quot;$(GameThirdParty)\curl\bin\libcurl-x64.def&quot; /out:&quot;$(IntDir)libcurl-msvc.lib&quot;" />
+  </Target>
+  <Target Name="CopyCurlRuntime" AfterTargets="Build" Condition="'$(GameThirdParty)'!=''">
+    <Copy SourceFiles="$(GameThirdParty)\curl\bin\libcurl-x64.dll" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCInstallDir)vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" Condition="'$(VcpkgEnableManifest)'=='true' and '$(VcpkgPropsImported)'!='true' and Exists('$(VCInstallDir)vcpkg\scripts\buildsystems\msbuild\vcpkg.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

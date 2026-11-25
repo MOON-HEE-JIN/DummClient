@@ -1,14 +1,23 @@
 ﻿#include "CPacketProc.h"
-#include "Stub/EnumDef.h"
+#include "Stub/GameClient.EnumDef.g.h"
 #include "Log/CLog.h"
 #include "CDummy/DummyDef.h"
 #include "CDummy/CDummyManager.h"
 #include "CUtill/CUtill.h"
 
 
+int CPacketProc::DO_GAME_AUTHCODE(CClient* pTarget, CPacket& pReqPacket)
+{
+	Rpc::GameClient::st_STC_AuthCode res{};
+	pReqPacket >> res;
+	if (res.ret != 0)
+		g_LogDummy.ELog("GameServer AUTHCODE failed for client[%d], ret[%d]", pTarget->GetID(), res.ret);
+	return res.ret;
+}
+
 int CPacketProc::DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_LoopBack res;
+	Rpc::GameClient::st_STC_LoopBack res;
 	pReqPacket >> res;
 
 	if (res.ret != 0)
@@ -31,7 +40,7 @@ int CPacketProc::DO_ERROR_RESULT(CClient* pTarget, int ret, int type)
 
 int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_ChangeZone res;
+	Rpc::GameClient::st_STC_ChangeZone res;
 	pReqPacket >> res;
 
 	if (res.ret != 0)
@@ -52,7 +61,7 @@ int CPacketProc::DO_GAME_CHANGEZONE(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_ConnectInfo res;
+	Rpc::GameClient::st_STC_ConnectInfo res;
 	pReqPacket >> res;
 
 	pTarget->ConnectServerLoginThread(res.info.ID);
@@ -64,7 +73,7 @@ int CPacketProc::DO_GAME_CONNECTINFO(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_MoveStart res;
+	Rpc::GameClient::st_STC_MoveStart res;
 	pReqPacket >> res;
 	pTarget->SetMoveStartResult(res.ret);
 
@@ -84,7 +93,7 @@ int CPacketProc::DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_MoveStop res;
+	Rpc::GameClient::st_STC_MoveStop res;
 	pReqPacket >> res;
 
 	// AOI Broadcast로 받은 다른 Player의 MoveStop은 자신의 Schedule 상태를 바꾸지 않는다.
@@ -115,14 +124,9 @@ int CPacketProc::DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket)
 	return 0;
 }
 
-int CPacketProc::DO_OBSERVER_CONNET_OBSERVER(CClient* pTarget, CPacket& pReqPacket)
-{
-	return 0;
-}
-
 int CPacketProc::DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_ChangeingZone res;
+	Rpc::GameClient::st_STC_ChangeingZone res;
 	pReqPacket >> res;
 
 	int ret = res.ret;
@@ -132,7 +136,7 @@ int CPacketProc::DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_TELEPORT(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_Teleport res;
+	Rpc::GameClient::st_STC_Teleport res;
 	pReqPacket >> res;
 
 	if (res.ret == 0)
@@ -163,7 +167,7 @@ int CPacketProc::DO_GAME_TELEPORT(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_AOI_IN_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_AoiInPlayer res;
+	Rpc::GameClient::st_STC_AoiInPlayer res;
 	pReqPacket >> res;
 	pTarget->AddVisiblePlayer(res.info.ID);
 	pTarget->AddAoiInEntityCount(1);
@@ -172,7 +176,7 @@ int CPacketProc::DO_GAME_AOI_IN_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_AOI_IN_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_AoiInPlayers res;
+	Rpc::GameClient::st_STC_AoiInPlayers res;
 	pReqPacket >> res;
 
 	if (res.Loop1 < 0 || res.Loop1 > 50)
@@ -190,7 +194,7 @@ int CPacketProc::DO_GAME_AOI_IN_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_AOI_OUT_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_AoiOutPlayer res;
+	Rpc::GameClient::st_STC_AoiOutPlayer res;
 	pReqPacket >> res;
 	pTarget->RemoveVisiblePlayer(res.ID);
 	pTarget->AddAoiOutEntityCount(1);
@@ -199,7 +203,7 @@ int CPacketProc::DO_GAME_AOI_OUT_PLAYER(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_AOI_OUT_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_AoiOutPlayers res;
+	Rpc::GameClient::st_STC_AoiOutPlayers res;
 	pReqPacket >> res;
 
 	if (res.Loop1 < 0 || res.Loop1 > 50)
@@ -217,7 +221,7 @@ int CPacketProc::DO_GAME_AOI_OUT_PLAYERS(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_OTHERMOVESTART(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_OtherMoveStart res;
+	Rpc::GameClient::st_STC_OtherMoveStart res;
 	pReqPacket >> res;
 	pTarget->AddVisiblePlayer(res.ID);
 	pTarget->AddOtherMoveStartCount();
@@ -226,7 +230,7 @@ int CPacketProc::DO_GAME_OTHERMOVESTART(CClient* pTarget, CPacket& pReqPacket)
 
 int CPacketProc::DO_GAME_AOI_IN_PLAYERS_MOVE(CClient* pTarget, CPacket& pReqPacket)
 {
-	st_STC_AoiInPlayerMoves res;
+	Rpc::GameClient::st_STC_AoiInPlayerMoves res;
 	pReqPacket >> res;
 
 	if (res.Loop1 < 0 || res.Loop1 > 50)

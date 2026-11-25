@@ -1,6 +1,7 @@
 ﻿#include "CSession.h"
+#include "../Stub/GameClient.PacketEnumDef.g.h"
 #include <WS2tcpip.h>
-#include "../Stub/StructDef.h"
+#include "../Stub/GameClient.StructDef.g.h"
 
 CSession::CSession()
 {
@@ -182,7 +183,9 @@ int CSession::SendPacket(CPacket* _packet)
 void CSession::SendEnqueuePacket(int type, CPacket* _pPacket)
 {
 	EnterCriticalSection(&m_csSendQ);
-	m_vecEnqueueType.push_back(type);
+	// AUTHCODE has no reply to measure.
+	if (type != Rpc::GameClient::GAME::AUTHCODE)
+		m_vecEnqueueType.push_back(type);
 	int ret = SendQ->Enqueue(_pPacket->GetReadBuffPtr(), _pPacket->GetDataSize());
 	LeaveCriticalSection(&m_csSendQ);
 }

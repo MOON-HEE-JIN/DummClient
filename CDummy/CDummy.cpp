@@ -53,13 +53,11 @@ bool CDummy::CreateDummyClient()
 	for (int i = m_iDummyDefaultID; i < max; i++)
 	{
 		CClient* pClient = new CClient(m_iID, i);
-		int ret = pClient->Connect(m_szIP, m_sPort, (HANDLE)GetCICPPort());
-		if (ret != 0)
+		if (!pClient->ConnectDummy(m_szIP, m_sPort))
 		{
 			delete pClient;
-			g_LogDummy.ELog("ERROR Create Client[%d] WSA[%d]", i, ret);
-			ReleaseDummyClient();
-			return false;
+			g_LogDummy.ELog("Stopped creating clients at ID[%d], connected[%zu]", i, m_DummyClients.size());
+			return !m_DummyClients.empty();
 		}
 		pClient->Init(m_iDummyChannel, m_iDummyZone, m_pSchedule);
 		

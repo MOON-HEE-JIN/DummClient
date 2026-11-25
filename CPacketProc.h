@@ -1,21 +1,22 @@
 ﻿#pragma once
 
-#include "Stub/CLIENT_STUB.h"
-#include "Stub/CLIENT_STUB.cpp"
+#include "Stub/GameClient.GameServerToClientStub.g.h"
+#include "Stub/GameClient.GameServerToClientStub.g.cpp"
 
 #include "CClient.h"
 #include "CUtill/CPacket.h"
-#include "Stub/PacketEnumDef.h"
+#include "Stub/GameClient.PacketEnumDef.g.h"
 
 class CClient;
 
-class CPacketProc : public Stub<CClient, CPacket>
+class CPacketProc : public Rpc::GameClient::GameServerToClientStub<CClient, CPacket>
 {
 public:
 	CPacketProc() {};
 	~CPacketProc() {};
 private:
 	// Stub을(를) 통해 상속됨
+	int DO_GAME_AUTHCODE(CClient* pTarget, CPacket& pReqPacket) override;
 	int DO_GAME_LOOPBACK(CClient* pTarget, CPacket& pReqPacket);
 	
 	int DO_ERROR_PACKET(CClient* pTarget, CPacket& pReqPacket);
@@ -30,9 +31,6 @@ private:
 	// Stub을(를) 통해 상속됨
 	int DO_GAME_MOVESTART(CClient* pTarget, CPacket& pReqPacket) override;
 	int DO_GAME_MOVESTOP(CClient* pTarget, CPacket& pReqPacket) override;
-
-	// Stub을(를) 통해 상속됨
-	int DO_OBSERVER_CONNET_OBSERVER(CClient* pTarget, CPacket& pReqPacket) override;
 
 	// Stub을(를) 통해 상속됨
 	int DO_GAME_CHANGEINGZONE(CClient* pTarget, CPacket& pReqPacket) override;
