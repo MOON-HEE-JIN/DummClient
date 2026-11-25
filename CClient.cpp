@@ -1,4 +1,6 @@
 ﻿#include "CClient.h"
+#include "Http/CHttpClient.h"
+#include "Stub/GameClient.PacketEnumDef.g.h"
 #include "CPacketProc.h"
 #include "CUtill/CUtill.h"
 #include "CDummy/CDummy.h"
@@ -72,18 +74,39 @@ void CClient::OnRecv(int type, CPacket& cPacket, LONGLONG recvtime)
 	m_dLatencyTime.store(time);
 }
 
+bool CClient::ConnectDummy(const char* ip, unsigned short port)
+{
+	static const CHttpClient http;
+	const std::string suffix = std::to_string(m_iID);
+	Rpc::GameClient::st_CTS_AuthCode req{};
+	req.ID.comment = "dummy_ID_" + suffix;
+	req.Password.comment = "dummy_pw_" + suffix;
+	req.ID.length = static_cast<short>(req.ID.comment.size());
+	req.Password.length = static_cast<short>(req.Password.comment.size());
+	if (!http.DummyLogin(req.ID.comment, req.Password.comment, req.token))
+		return false;
+
+	const int ret = Connect(ip, port, (HANDLE)GetCICPPort());
+	if (ret != 0)
+	{
+		g_LogDummy.ELog("ERROR Connect Client[%d] WSA[%d]", m_iID, ret);
+		return false;
+	}
+
+	CPacket packet;
+	packet << req;
+	SendEnqueuePacket(Rpc::GameClient::GAME::AUTHCODE, &packet);
+	SendPost();
+	return true;
+}
+
 void CClient::ReConnect()
 {
 	CDummy* pDummy = g_DummyManager.GetDummy(m_iManagementDummyID);
 	if (pDummy == nullptr)
 		return;
 
-	int ret = Connect(pDummy->GetIP(), pDummy->GetPort(), (HANDLE)GetCICPPort());
-
-	if (ret != 0)
-	{
-		g_LogDummy.ELog("ERROR Create Client[%d] WSA[%d]", GetID(), ret);
-	}
+	ConnectDummy(pDummy->GetIP(), pDummy->GetPort());
 }
 
 void CClient::Init(int channel, int zone, CSchedule* pSchedule)

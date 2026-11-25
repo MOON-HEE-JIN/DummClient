@@ -2,7 +2,7 @@
 #include "CSession.h"
 #include "../CClient.h"
 
-#include "../Stub/StructDef.h"
+#include "../Stub/GameClient.StructDef.g.h"
 #include <Windows.h>
 #include <process.h>
 #include "../Log/CLog.h"

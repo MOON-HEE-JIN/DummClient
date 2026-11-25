@@ -25,6 +25,7 @@ public:
 		Clear();
 	}
 
+	bool ConnectDummy(const char* ip, unsigned short port);
 	void ReConnect();
 	
 private:

@@ -2,8 +2,8 @@
 
 #include "../GameServerDef.h"
 #include "../Log/CLog.h"
-#include "../Stub/PacketEnumDef.h"
-#include "../Stub/EnumDef.h"
+#include "../Stub/GameClient.PacketEnumDef.g.h"
+#include "../Stub/GameClient.EnumDef.g.h"
 
 #include <sstream>
 

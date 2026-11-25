@@ -6,6 +6,7 @@ Thumbs.db
 *.log
 
 # Build outputs
+vcpkg_installed/
 bin/
 obj/
 build/

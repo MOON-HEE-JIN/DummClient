@@ -1,7 +1,7 @@
 ﻿#include "NetWork/CNetWork.h"
 #include "NetWork/CSession.h"
 
-#include "Stub/PacketEnumDef.h"
+#include "Stub/GameClient.PacketEnumDef.g.h"
 
 #include "CClient.h"
 #include "CPacketProc.h"

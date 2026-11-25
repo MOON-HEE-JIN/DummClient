@@ -42,6 +42,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Http\CHttpClient.h">
+      <Filter>소스 파일\NetWork</Filter>
+    </ClInclude>
     <ClInclude Include="NetWork\CNetWork.h">
       <Filter>소스 파일\NetWork</Filter>
     </ClInclude>
@@ -51,19 +54,34 @@
     <ClInclude Include="CUtill\CPacket.h">
       <Filter>소스 파일\CUtill</Filter>
     </ClInclude>
-    <ClInclude Include="Stub\CLIENT_STUB.h">
+    <ClInclude Include="Stub\ChatClient.ChatServerToClientStub.g.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
-    <ClInclude Include="Stub\EnumDef.h">
+    <ClInclude Include="Stub\GameClient.GameServerToClientStub.g.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
-    <ClInclude Include="Stub\PacketEnumDef.h">
+    <ClInclude Include="Stub\ChatClient.EnumDef.g.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
-    <ClInclude Include="Stub\Serialization.h">
+    <ClInclude Include="Stub\GameClient.EnumDef.g.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
-    <ClInclude Include="Stub\StructDef.h">
+    <ClInclude Include="Stub\ChatClient.PacketEnumDef.g.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
+    <ClInclude Include="Stub\GameClient.PacketEnumDef.g.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
+    <ClInclude Include="Stub\ChatClient.Serialization.g.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
+    <ClInclude Include="Stub\GameClient.Serialization.g.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
+    <ClInclude Include="Stub\ChatClient.StructDef.g.h">
+      <Filter>소스 파일\Stub</Filter>
+    </ClInclude>
+    <ClInclude Include="Stub\GameClient.StructDef.g.h">
       <Filter>소스 파일\Stub</Filter>
     </ClInclude>
     <ClInclude Include="CClient.h">
@@ -179,6 +197,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Http\CHttpClient.cpp">
+      <Filter>소스 파일\NetWork</Filter>
+    </ClCompile>
     <ClCompile Include="NetWork\CNetWork.cpp">
       <Filter>소스 파일\NetWork</Filter>
     </ClCompile>
@@ -188,10 +209,16 @@
     <ClCompile Include="NetWork\CSession.cpp">
       <Filter>소스 파일\NetWork</Filter>
     </ClCompile>
-    <ClCompile Include="Stub\CLIENT_STUB.cpp">
+    <ClCompile Include="Stub\ChatClient.ChatServerToClientStub.g.cpp">
       <Filter>소스 파일\Stub</Filter>
     </ClCompile>
-    <ClCompile Include="Stub\Serialization.cpp">
+    <ClCompile Include="Stub\GameClient.GameServerToClientStub.g.cpp">
+      <Filter>소스 파일\Stub</Filter>
+    </ClCompile>
+    <ClCompile Include="Stub\ChatClient.Serialization.g.cpp">
+      <Filter>소스 파일\Stub</Filter>
+    </ClCompile>
+    <ClCompile Include="Stub\GameClient.Serialization.g.cpp">
       <Filter>소스 파일\Stub</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
