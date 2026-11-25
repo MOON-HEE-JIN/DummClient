@@ -9,6 +9,11 @@ services:
       isolation: hyperv
     isolation: hyperv
     command: ["gameserver"]
+    volumes:
+      - type: bind
+        source: 'F:\certs'
+        target: 'C:\app\certs'
+        read_only: true
     networks:
       - dockerwindows_default
     restart: unless-stopped

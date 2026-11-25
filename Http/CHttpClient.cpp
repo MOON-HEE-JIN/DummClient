@@ -1,4 +1,4 @@
-#include "CHttpClient.h"
+﻿#include "CHttpClient.h"
 #include "../Log/CLog.h"
 
 #include <curl/curl.h>
@@ -45,8 +45,18 @@ bool CHttpClient::DummyLogin(const std::string& id, const std::string& password,
 	const nlohmann::json request = { {"id", id}, {"password", password} };
 	const std::string body = request.dump();
 	std::string response;
+#ifdef __DOCKER__
+	curl_easy_setopt(curl.get(), CURLOPT_URL, "https://loginserver:5080/api/clientconnection/dummylogin");
+#else
 	curl_easy_setopt(curl.get(), CURLOPT_URL, "https://localhost:5080/api/clientconnection/dummylogin");
+#endif
+
+#ifdef __DOCKER__
+	curl_easy_setopt(curl.get(), CURLOPT_CAINFO, R"(C:\app\certs\loginserver-new.crt)");
+#else
 	curl_easy_setopt(curl.get(), CURLOPT_CAINFO, R"(F:\certs\loginserver-new.crt)");
+#endif
+
 	curl_easy_setopt(curl.get(), CURLOPT_HTTPHEADER, headers.get());
 	curl_easy_setopt(curl.get(), CURLOPT_POSTFIELDS, body.c_str());
 	curl_easy_setopt(curl.get(), CURLOPT_CONNECTTIMEOUT_MS, 3000L);
