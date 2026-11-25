@@ -57,6 +57,7 @@ private:
 
 	CRITICAL_SECTION cs;
 public:
+	bool SetServerHost(const char* host);
 	bool CreateDummy(int channel, int zone, int count, int scheduleType);
 	CDummy* GetDummy(int id);
 	void AddDummyClient(CClient* pClient);

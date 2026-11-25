@@ -1,0 +1,19 @@
+name: cpp-netclient
+
+services:
+  dummyclient:
+    image: cpp-netclient:release
+    build:
+      context: ./x64/Docker
+      dockerfile: Dockerfile
+      isolation: hyperv
+    isolation: hyperv
+    command: ["gameserver"]
+    networks:
+      - dockerwindows_default
+    restart: unless-stopped
+
+networks:
+  dockerwindows_default:
+    external: true
+    name: dockerwindows_default

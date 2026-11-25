@@ -8,8 +8,14 @@
 #include "CDummy/CDummyManager.h"
 #include "Test/TSchedule_Change_Zone.h"
 std::vector<CDummy*> vecDummy;
-int main()
+int main(int argc, char* argv[])
 {
+	if (argc > 1 && !g_DummyManager.SetServerHost(argv[1]))
+	{
+		fprintf(stderr, "Cannot resolve GameServer host: %s\n", argv[1]);
+		return 1;
+	}
+
 	StartThread();
 	Sleep(1000); // NetWork Thread 시작 대기
 	

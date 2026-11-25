@@ -12,6 +12,7 @@
 
 #include "../Log/CLog.h"
 #include <process.h>
+#include <WS2tcpip.h>
 
 CDummyManager g_DummyManager;
 
@@ -115,6 +116,27 @@ CDummyManager::~CDummyManager()
     if (m_hExit != NULL)
         CloseHandle(m_hExit);
     DeleteCriticalSection(&cs);
+}
+
+bool CDummyManager::SetServerHost(const char* host)
+{
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+        return false;
+
+    addrinfo hints = {};
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    addrinfo* result = nullptr;
+    bool resolved = false;
+    if (getaddrinfo(host, nullptr, &hints, &result) == 0)
+    {
+        const sockaddr_in* address = reinterpret_cast<const sockaddr_in*>(result->ai_addr);
+        resolved = inet_ntop(AF_INET, &address->sin_addr, m_szIP, sizeof(m_szIP)) != nullptr;
+        freeaddrinfo(result);
+    }
+    WSACleanup();
+    return resolved;
 }
 
 bool CDummyManager::CreateDummy(int channel, int zone, int count, int scheduleType)
